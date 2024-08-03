@@ -1,0 +1,19 @@
+extends layout
+
+block content
+  h1 PDF Blend
+  p Upload your PDF files or a ZIP file containing PDFs to merge them into one.
+
+  form#uploadForm(action='/pdf/merge' method='POST' enctype='multipart/form-data')
+    input(type='file' id='fileInput' name='files', multiple)
+    br
+    label(for='filename') Enter name for merged PDF:
+    input(type='text' id='filename' name='filename' placeholder='MergedFileName.pdf')
+    br
+    button(type='submit') Merge PDFs
+
+  #loader(style='display:none;')
+    p Loading... Please wait...
+  script( type='module' src='https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js')
+  script(src='https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js')
+  script( type='module' src='/javascripts/script.mjs')

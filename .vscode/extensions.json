@@ -1,0 +1,16 @@
+{
+  "recommendations": [
+    "dbaeumer.vscode-eslint",
+    "esbenp.prettier-vscode",
+    "christian-kohler.npm-intellisense",
+    "ms-vscode.node-debug2",
+    "eg2.vscode-npm-script",
+    "msjsdiag.debugger-for-chrome",
+    "pugjs.pug",
+    "pug-formatter.pug-formatter",
+    "davidanson.vscode-markdownlint",
+    "visualstudioexptteam.vscodeintellicode",
+    "coenraads.bracket-pair-colorizer-2",
+    "redhat.vscode-yaml"
+  ]
+}

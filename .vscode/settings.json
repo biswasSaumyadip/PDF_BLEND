@@ -1,0 +1,24 @@
+{
+  "typescript.tsdk": "node_modules/typescript/lib",
+  "eslint.validate": ["javascript", "typescript"],
+  "eslint.options": {
+    "extensions": [".js", ".ts"]
+  },
+  "editor.formatOnSave": true,
+  "editor.tabSize": 2,
+  "editor.insertSpaces": true,
+  "files.autoSave": "afterDelay",
+  "files.exclude": {
+    "**/.git": true,
+    "**/.DS_Store": true,
+    "**/node_modules": true,
+    "**/dist": true
+  },
+  "typescript.autoImportSuggestions.enabled": true,
+  "javascript.updateImportsOnFileMove.enabled": "always",
+  "typescript.updateImportsOnFileMove.enabled": "always",
+  "editor.rulers": [100],
+  "editor.codeActionsOnSave": {
+    "source.fixAll.eslint": "explicit"
+  }
+}
