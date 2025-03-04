@@ -2,11 +2,11 @@ import createError from 'http-errors';
 import express, { Request, Response, NextFunction } from 'express';
 import path from 'path';
 import cookieParser from 'cookie-parser';
-import logger from 'morgan';
 
 import indexRouter from './routes/index';
 import usersRouter from './routes/users';
 import pdfRouter from './routes/pdfRoutes';
+import morganMiddleware from './middleware/morganMiddleware';
 
 const app = express();
 
@@ -14,7 +14,7 @@ const app = express();
 app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'pug');
 
-app.use(logger('dev'));
+app.use(morganMiddleware);
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
@@ -27,7 +27,6 @@ app.use('/pdf', pdfRouter);
 // catch 404 and forward to error handler
 app.use((req: Request, res: Response, next: NextFunction) => {
   next(createError(404));
-  console.log("Hi");
 });
 
 // error handler
