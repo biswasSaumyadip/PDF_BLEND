@@ -8,6 +8,9 @@ import app from '../app';
 import http from 'http';
 import logger from '../utils/logger';
 
+import dotenv from 'dotenv';
+dotenv.config();
+
 /**
  * Get port from environment and store in Express.
  */
