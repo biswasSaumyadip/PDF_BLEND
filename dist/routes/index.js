@@ -7,6 +7,15 @@ const express_1 = __importDefault(require("express"));
 const router = express_1.default.Router();
 /* GET home page. */
 router.get('/', (req, res, next) => {
-    res.render('index', { title: 'Express' });
+    res.render('index', { title: 'PDF Blend' });
+});
+router.get('/merge-with-preview', (req, res) => {
+    res.render('merge-with-preview', { title: 'PDF Blend with Preview' });
+});
+router.get('/merge', (req, res) => {
+    res.render('merge', { title: 'Merge PDFs' });
+});
+router.get('/remove', (req, res) => {
+    res.render('remove', { title: 'Remove Pages' });
 });
 exports.default = router;

@@ -42,6 +42,23 @@ export class PDFService {
     logger.info(`[PDFService] Extracted ${pdfBuffers.length} PDFs from ZIP`);
     return await this.mergePDFs(pdfBuffers);
   }
+
+  static async removePages(pdfBuffer: Buffer, pagesToRemove: number[]): Promise<Buffer> {
+    // Explicit conversion for compatibility
+    const uint8Array = new Uint8Array(pdfBuffer);
+  
+    const pdfDoc = await PDFDocument.load(uint8Array);
+    const totalPages = pdfDoc.getPageCount();
+  
+    const pagesToKeep = Array.from({ length: totalPages }, (_, i) => i).filter(i => !pagesToRemove.includes(i));
+  
+    const newPdf = await PDFDocument.create();
+    const copiedPages = await newPdf.copyPages(pdfDoc, pagesToKeep);
+    copiedPages.forEach((page) => newPdf.addPage(page));
+  
+    const pdfBytes = await newPdf.save();
+    return Buffer.from(pdfBytes);
+  }
 }
 
 export const mergePDFsHandler = async (req: Request, res: Response) => {
@@ -109,4 +126,7 @@ export const mergePDFsHandler = async (req: Request, res: Response) => {
     logger.error(`[mergePDFsHandler] An error occurred while merging PDFs`, { error });
     res.status(500).send('An error occurred while merging PDFs.');
   }
+
+
+  
 };

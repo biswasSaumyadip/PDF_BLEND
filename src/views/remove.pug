@@ -1,0 +1,23 @@
+extends layout
+
+block content
+  h1 PDF Blend – Remove Pages
+  p Upload a single PDF, select pages to remove, and download the cleaned version.
+
+  form#uploadForm(action='/pdf/remove' method='POST' enctype='multipart/form-data')
+    div.form-group
+      label(for='fileInput') Upload PDF:
+      input(type='file' id='fileInput' name='file' accept='application/pdf')
+
+    div.form-group
+      label(for='filename') Output File Name:
+      input(type='text' id='filename' name='filename' placeholder='CleanedFile.pdf')
+
+    button(type='submit') Remove Selected Pages
+
+  h2 Preview – Select Pages to Remove
+  #previewContainer
+
+block scripts
+  script(src='https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js')
+  script(type='module' src='/javascripts/remove-preview.mjs')

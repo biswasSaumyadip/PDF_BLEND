@@ -2,18 +2,17 @@ extends layout
 
 block content
   h1 PDF Blend
-  p Upload your PDF files or a ZIP file containing PDFs to merge them into one.
+  p A simple web tool to merge PDFs — with or without removing pages visually.
 
-  form#uploadForm(action='/pdf/merge' method='POST' enctype='multipart/form-data')
-    input(type='file' id='fileInput' name='files', multiple)
-    br
-    label(for='filename') Enter name for merged PDF:
-    input(type='text' id='filename' name='filename' placeholder='MergedFileName.pdf')
-    br
-    button(type='submit') Merge PDFs
+  h2 Choose an action:
 
-  #loader(style='display:none;')
-    p Loading... Please wait...
-  script( type='module' src='https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js')
-  script(src='https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js')
-  script( type='module' src='/javascripts/script.mjs')
+  ul
+    li
+      a(href='/merge') ➕ Merge PDFs (Standard)
+    li
+      a(href='/merge-with-preview') ✂️ Merge PDFs with Visual Page Removal
+    li
+      a(href='/remove') 🧼 Remove Pages from a Single PDF
+
+  br
+  p You can upload multiple PDF files or even a ZIP archive, and optionally remove pages before combining.
