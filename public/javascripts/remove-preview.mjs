@@ -14,11 +14,6 @@ fileInput.addEventListener('change', async (e) => {
   const arrayBuffer = await file.arrayBuffer();
   const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
 
-  const container = document.createElement('div');
-  container.className = 'pdf-file';
-  container.innerHTML = `<h3>${file.name}</h3>`;
-  previewContainer.appendChild(container);
-
   for (let j = 0; j < pdf.numPages; j++) {
     const page = await pdf.getPage(j + 1);
     const viewport = page.getViewport({ scale: 0.3 });
@@ -34,12 +29,17 @@ fileInput.addEventListener('change', async (e) => {
     checkbox.type = 'checkbox';
     checkbox.dataset.pageNumber = j;
 
+    const pageDiv = document.createElement('div');
+    pageDiv.className = 'pdf-page';
+
     checkbox.addEventListener('change', () => {
       const pageNum = +checkbox.dataset.pageNumber;
       if (checkbox.checked) {
         pagesToRemove.push(pageNum);
+        pageDiv.classList.add('selected');
       } else {
         pagesToRemove = pagesToRemove.filter((p) => p !== pageNum);
+        pageDiv.classList.remove('selected');
       }
     });
 
@@ -48,19 +48,14 @@ fileInput.addEventListener('change', async (e) => {
     label.style.display = 'block';
     label.appendChild(checkbox);
 
-    const pageDiv = document.createElement('div');
-    pageDiv.style.display = 'inline-block';
-    pageDiv.style.margin = '10px';
-    pageDiv.style.textAlign = 'center';
-
     pageDiv.appendChild(canvas);
     pageDiv.appendChild(label);
-    container.appendChild(pageDiv);
+    previewContainer.appendChild(pageDiv);
   }
 });
 
 form.addEventListener('submit', async (e) => {
-  e.preventDefault(); // prevent native form submission
+  e.preventDefault();
 
   const file = fileInput.files[0];
   const filename = document.getElementById('filename').value || 'CleanedFile.pdf';
@@ -88,7 +83,7 @@ form.addEventListener('submit', async (e) => {
     downloadLink.download = filename;
     downloadLink.click();
 
-    // ✅ Clear everything after download
+    // ✅ Reset UI after download
     form.reset();
     previewContainer.innerHTML = '';
     pagesToRemove = [];

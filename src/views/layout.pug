@@ -2,8 +2,27 @@ doctype html
 html
   head
     title= title
+    meta(charset='utf-8')
+    meta(name='viewport', content='width=device-width, initial-scale=1')
     link(rel='stylesheet', href='/stylesheets/style.css')
+    link(rel='stylesheet', href='/stylesheets/sidebar.css')
+    block styles
   body
-    block content
+    .workspace
+      aside.sidebar
+        nav.mode-switch
+          ul
+            li(class=activePage === 'remove' ? 'active' : '')
+              a(href='/remove') 🧼 Remove Pages
+            li(class=activePage === 'merge' ? 'active' : '')
+              a(href='/merge') ➕ Merge PDFs
+            li(class=activePage === 'merge-preview' ? 'active' : '')
+              a(href='/merge-with-preview') ✂️ Merge with Preview
+
+        .sidebar-content
+          block sidebarForm
+
+      main.content
+        block pageContent
 
     block scripts

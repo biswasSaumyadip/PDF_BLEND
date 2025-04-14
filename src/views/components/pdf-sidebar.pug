@@ -1,0 +1,12 @@
+mixin pdfSidebar(active)
+  aside.sidebar
+    nav.mode-switch
+      ul
+        li(class=active === 'remove' ? 'active' : '')
+          a(href='/remove') 🧼 Remove Pages
+        li(class=active === 'merge' ? 'active' : '')
+          a(href='/merge') ➕ Merge PDFs
+        li(class=active === 'merge-preview' ? 'active' : '')
+          a(href='/merge-with-preview') ✂️ Merge with Preview
+
+    block sidebarActions

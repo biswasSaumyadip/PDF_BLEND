@@ -46,18 +46,45 @@ export class PDFService {
   static async removePages(pdfBuffer: Buffer, pagesToRemove: number[]): Promise<Buffer> {
     // Explicit conversion for compatibility
     const uint8Array = new Uint8Array(pdfBuffer);
-  
+
     const pdfDoc = await PDFDocument.load(uint8Array);
     const totalPages = pdfDoc.getPageCount();
-  
-    const pagesToKeep = Array.from({ length: totalPages }, (_, i) => i).filter(i => !pagesToRemove.includes(i));
-  
+
+    const pagesToKeep = Array.from({ length: totalPages }, (_, i) => i).filter(
+      (i) => !pagesToRemove.includes(i)
+    );
+
     const newPdf = await PDFDocument.create();
     const copiedPages = await newPdf.copyPages(pdfDoc, pagesToKeep);
     copiedPages.forEach((page) => newPdf.addPage(page));
-  
+
     const pdfBytes = await newPdf.save();
     return Buffer.from(pdfBytes);
+  }
+
+  static async mergeAndRemovePages(buffers: Buffer[], pagesToRemove: number[]): Promise<Buffer> {
+    const mergedPdf = await PDFDocument.create();
+    let pageOffset = 0;
+
+    for (const buffer of buffers) {
+      const pdfDoc = await PDFDocument.load(new Uint8Array(buffer));
+      const totalPages = pdfDoc.getPageCount();
+
+      const keepPages = Array.from({ length: totalPages }, (_, i) => i).filter(
+        (i) => !pagesToRemove.includes(i + pageOffset)
+      );
+
+      const copied = await mergedPdf.copyPages(
+        pdfDoc,
+        keepPages.map((i) => i)
+      );
+      copied.forEach((page) => mergedPdf.addPage(page));
+
+      pageOffset += totalPages;
+    }
+
+    const finalBytes = await mergedPdf.save();
+    return Buffer.from(finalBytes);
   }
 }
 
@@ -126,7 +153,4 @@ export const mergePDFsHandler = async (req: Request, res: Response) => {
     logger.error(`[mergePDFsHandler] An error occurred while merging PDFs`, { error });
     res.status(500).send('An error occurred while merging PDFs.');
   }
-
-
-  
 };

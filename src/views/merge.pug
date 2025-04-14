@@ -1,19 +1,69 @@
 extends layout
 
-block content
-  h1 PDF Blend
-  p Upload your PDF files or a ZIP file containing PDFs to merge them into one.
-
+block sidebarForm
   form#uploadForm(action='/pdf/merge' method='POST' enctype='multipart/form-data')
-    input(type='file' id='fileInput' name='files', multiple)
-    br
-    label(for='filename') Enter name for merged PDF:
-    input(type='text' id='filename' name='filename' placeholder='MergedFileName.pdf')
-    br
+    label(for='fileInput') Upload PDF(s) or ZIP:
+    input(type='file' id='fileInput' name='files' accept='.pdf,.zip' multiple)
+
+    label(for='filename') Output File Name:
+    input(type='text' id='filename' name='filename' placeholder='MergedFile.pdf')
+
     button(type='submit') Merge PDFs
 
-  #loader(style='display:none;')
-    p Loading... Please wait...
-  script( type='module' src='https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js')
+    // 🔄 Loader UI inside form
+    #loader(style='display: none; margin-top: 16px;')
+      p Merging PDFs... Please wait...
+
+block pageContent
+  h2 Merged output will be downloaded after processing.
+
+block styles
+  style.
+    html, body {
+      margin: 0;
+      padding: 0;
+      height: 100vh;
+      width: 100vw;
+      font-family: system-ui, sans-serif;
+      background: #f0f0f0;
+    }
+
+    .workspace {
+      display: flex;
+      height: 100vh;
+      width: 100vw;
+    }
+
+    main.preview-panel {
+      flex: 1;
+      padding: 30px 40px;
+      overflow-y: auto;
+    }
+
+    aside.sidebar input,
+    aside.sidebar button {
+      font-size: 14px;
+      padding: 8px;
+      border-radius: 4px;
+      border: 1px solid #ccc;
+      width: 100%;
+      margin-bottom: 12px;
+    }
+
+    aside.sidebar button {
+      background-color: #007bff;
+      color: white;
+      font-weight: bold;
+      cursor: pointer;
+      border: none;
+    }
+
+    #loader {
+      font-weight: bold;
+      color: #333;
+    }
+
+block scripts
   script(src='https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js')
-  script( type='module' src='/javascripts/script.mjs')
+  script(src='https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js')
+  script(type='module' src='/javascripts/script.mjs')
