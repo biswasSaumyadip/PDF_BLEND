@@ -18,4 +18,8 @@ router.get('/remove', (req: Request, res: Response) => {
   res.render('remove', { title: 'Remove Pages' });
 });
 
+router.get('/fix-links', (req: Request, res: Response) => {
+  res.render('fix-links', { title: 'Fix PDF Links', activePage: 'fix-links' });
+});
+
 export default router;

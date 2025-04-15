@@ -1,4 +1,4 @@
-import { PDFDocument } from 'pdf-lib';
+import { PDFDocument, PDFName, PDFArray, PDFDict, PDFRef } from 'pdf-lib';
 import { Request, Response } from 'express';
 import AdmZip from 'adm-zip';
 import logger from '../utils/logger';
@@ -62,6 +62,7 @@ export class PDFService {
     return Buffer.from(pdfBytes);
   }
 
+
   static async mergeAndRemovePages(buffers: Buffer[], pagesToRemove: number[]): Promise<Buffer> {
     const mergedPdf = await PDFDocument.create();
     let pageOffset = 0;
@@ -69,10 +70,13 @@ export class PDFService {
     for (const buffer of buffers) {
       const pdfDoc = await PDFDocument.load(new Uint8Array(buffer));
       const totalPages = pdfDoc.getPageCount();
+      logger.info(`[mergeAndRemovePages] Processing PDF with ${totalPages} pages`);
 
       const keepPages = Array.from({ length: totalPages }, (_, i) => i).filter(
         (i) => !pagesToRemove.includes(i + pageOffset)
       );
+
+      logger.info(`[mergeAndRemovePages] Keeping pages:`, keepPages);
 
       const copied = await mergedPdf.copyPages(
         pdfDoc,
@@ -84,7 +88,58 @@ export class PDFService {
     }
 
     const finalBytes = await mergedPdf.save();
+    logger.info(`[mergeAndRemovePages] Final merged PDF saved.`);
     return Buffer.from(finalBytes);
+  }
+
+  static async fixInternalLinks(buffer: Buffer, linksToFix: Record<number, { oldTarget: number; newTarget: number }[]>): Promise<Buffer> {
+    const pdfDoc = await PDFDocument.load(new Uint8Array(buffer));
+    const pages = pdfDoc.getPages();
+    logger.info(`[fixInternalLinks] Loaded PDF with ${pages.length} pages`);
+
+    for (const [pageIndexStr, linkUpdates] of Object.entries(linksToFix)) {
+      const pageIndex = parseInt(pageIndexStr);
+      const page = pages[pageIndex];
+      const annotsRef = page.node.get(PDFName.of('Annots'));
+
+      if (!annotsRef) continue;
+
+      const annots = pdfDoc.context.lookup(annotsRef);
+      if (!annots || !(annots instanceof PDFArray)) continue;
+
+      for (let i = 0; i < annots.size(); i++) {
+        const annotRef = annots.get(i);
+        const annot = pdfDoc.context.lookup(annotRef);
+
+        if (!annot || !(annot instanceof PDFDict)) continue;
+
+        const subtype = annot.get(PDFName.of('Subtype'));
+        if (!subtype || subtype?.toString() !== '/Link') continue;
+
+        const action = annot.get(PDFName.of('A'));
+        const actionDict = action && action instanceof PDFDict ? action : null;
+        if (!actionDict || actionDict.get(PDFName.of('S'))?.toString() !== '/GoTo') continue;
+
+        const dest = actionDict.get(PDFName.of('D'));
+
+        if (!dest || !(dest instanceof PDFRef)) continue;
+
+        const match = linkUpdates.find(l => {
+          const targetPage = pdfDoc.getPage(l.oldTarget);
+          return dest === targetPage.ref;
+        });
+
+        if (match) {
+          const newPageRef = pdfDoc.getPage(match.newTarget).ref;
+          logger.info(`📎 Page ${pageIndex}: Updating link from page ${match.oldTarget} → ${match.newTarget}`);
+          actionDict.set(PDFName.of('D'), newPageRef);
+        }
+      }
+    }
+
+    const updatedPdf = await pdfDoc.save();
+    logger.info(`[fixInternalLinks] PDF link targets updated and saved.`);
+    return Buffer.from(updatedPdf);
   }
 }
 

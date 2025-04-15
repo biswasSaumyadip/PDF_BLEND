@@ -8,5 +8,7 @@ mixin pdfSidebar(active)
           a(href='/merge') ➕ Merge PDFs
         li(class=active === 'merge-preview' ? 'active' : '')
           a(href='/merge-with-preview') ✂️ Merge with Preview
+        li(class=active === 'fix-links' ? 'active' : '')  // 👈 New
+          a(href='/pdf/fix-links') 🧭 Fix Internal Links
 
     block sidebarActions

@@ -18,6 +18,9 @@ html
               a(href='/merge') ➕ Merge PDFs
             li(class=activePage === 'merge-preview' ? 'active' : '')
               a(href='/merge-with-preview') ✂️ Merge with Preview
+            li(class=active === 'fix-links' ? 'active' : '')
+              a(href='/fix-links') 🧭 Fix Internal Links
+
 
         .sidebar-content
           block sidebarForm

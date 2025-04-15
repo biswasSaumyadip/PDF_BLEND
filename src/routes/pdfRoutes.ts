@@ -99,6 +99,8 @@ router.post(
       const filename = req.body.filename || 'MergedPreview.pdf';
       const pagesToRemoveMap: Record<string, number[]> = JSON.parse(req.body.pagesToRemove || '{}');
 
+      logger.info(`[Merge Start] Preparing to merge ${pdfFiles.length} file(s) with filename "${filename}"`);
+
       const mergedPdf = await PDFDocument.create();
 
       for (const file of pdfFiles) {
@@ -109,11 +111,15 @@ router.post(
         const toRemove = pagesToRemoveMap[file.originalname] || [];
         const toKeep = Array.from({ length: totalPages }, (_, i) => i).filter(i => !toRemove.includes(i));
 
+        logger.info(`[File] "${file.originalname}" → Total: ${totalPages} pages | Remove: [${toRemove}] | Keep: [${toKeep}]`);
+
         const copiedPages = await mergedPdf.copyPages(pdfDoc, toKeep);
         copiedPages.forEach((page) => mergedPdf.addPage(page));
       }
 
       const finalBytes = await mergedPdf.save();
+      logger.info(`[Merge Complete] Final merged PDF generated. Sending "${filename}" (${finalBytes.length} bytes)`);
+
       res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
       res.setHeader('Content-Type', 'application/pdf');
       res.send(Buffer.from(finalBytes));
@@ -124,6 +130,24 @@ router.post(
   }
 );
 
+router.post('/fix-links', upload.single('file'), async (req, res) => {
+  try {
+    const file = req.file;
+    const filename = req.body.filename || 'Updated.pdf';
+    const linksToFix: Record<number, { oldTarget: number; newTarget: number }[]> = JSON.parse(req.body.linksToFix || '{}');
+
+    if (!file?.buffer) return res.status(400).send('No file uploaded');
+
+    const updated = await PDFService.fixInternalLinks(file.buffer, linksToFix);
+
+    res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
+    res.setHeader('Content-Type', 'application/pdf');
+    res.send(updated);
+  } catch (err: any) {
+    logger.error('[Fix Links Error]', err.message);
+    res.status(500).send('Failed to fix links');
+  }
+});
 
 
 export default router;

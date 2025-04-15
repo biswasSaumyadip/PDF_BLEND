@@ -1,0 +1,92 @@
+extends layout
+
+block sidebarForm
+  form#fixLinksForm(action='/pdf/fix-links' method='POST' enctype='multipart/form-data')
+    label(for='fileInput') Upload PDF:
+    input(type='file' id='fileInput' name='file' accept='application/pdf')
+
+    label(for='filename') Output File Name:
+    input(type='text' id='filename' name='filename' placeholder='UpdatedFile.pdf')
+
+    button(type='submit') Fix Links
+
+    #loader(style='display:none;') Fixing links...
+
+block pageContent
+  h2 Preview and Fix Internal Page Links
+  #previewContainer
+
+block styles
+  style.
+    /* Preview container holds rendered PDF pages */
+    #previewContainer {
+      display: flex;
+      flex-direction: column;
+      gap: 40px;
+      padding: 20px;
+      overflow-x: auto;
+    }
+
+    /* Page wrapper */
+    .pdf-page {
+      position: relative;
+      background: white;
+      border: 1px solid #ccc;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+      margin: auto;
+    }
+
+    /* Visual rectangle for link area */
+    .link-box {
+      position: absolute;
+      border: 2px dashed red;
+      background-color: rgba(255, 255, 255, 0.7);
+      font-size: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 2px;
+      z-index: 10;
+    }
+
+    /* Input box for editing link target */
+    .link-input {
+      width: 60px;
+      padding: 2px;
+      margin-left: 6px;
+      font-size: 12px;
+      border: 1px solid #888;
+    }
+
+    /* Full-screen loader */
+    #loader {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      background: rgba(255, 255, 255, 0.8);
+      z-index: 9999;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      font-weight: bold;
+      font-size: 18px;
+    }
+
+    .page-label {
+      position: absolute;
+      top: -24px;
+      left: 0;
+      font-size: 14px;
+      font-weight: bold;
+      color: #333;
+      background: #f0f0f0;
+      padding: 2px 6px;
+      border-radius: 4px;
+      border: 1px solid #ccc;
+    }
+
+block scripts
+  script(src='https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js')
+  script(type='module' src='/javascripts/fix-links-preview.mjs')
