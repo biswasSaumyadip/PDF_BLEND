@@ -3,6 +3,8 @@ import { mergePDFsHandler, PDFService } from '../services/pdfService';
 import upload from '../middleware/uploadMiddleware';
 import logger from '../utils/logger';
 import { PDFDocument } from 'pdf-lib';
+import { validateMergeUpload } from '../middleware/uploadValidatorMiddleware';
+import { mergeWithPreview } from '../controller/pdfController';
 
 const router = express.Router();
 
@@ -74,61 +76,7 @@ router.post(
   }
 );
 
-router.post(
-  '/merge-with-preview',
-  (req: Request, res: Response, next: NextFunction) => {
-    upload.fields([{ name: 'files' }])(req, res, (err) => {
-      if (err) {
-        logger.error('[Multer Error] File upload failed', { error: err.message });
-        return res.status(400).json({ error: 'Error uploading file' });
-      }
-
-      if (!req.files || (req.files as { [fieldname: string]: Express.Multer.File[] })['files']?.length === 0) {
-        logger.warn('[Validation Error] No files uploaded');
-        return res
-          .status(400)
-          .json({ error: 'No files uploaded. Please select at least one PDF or ZIP.' });
-      }
-
-      next();
-    });
-  },
-  async (req: Request, res: Response) => {
-    try {
-      const pdfFiles = (req.files as { [fieldname: string]: Express.Multer.File[] })['files'] || [];
-      const filename = req.body.filename || 'MergedPreview.pdf';
-      const pagesToRemoveMap: Record<string, number[]> = JSON.parse(req.body.pagesToRemove || '{}');
-
-      logger.info(`[Merge Start] Preparing to merge ${pdfFiles.length} file(s) with filename "${filename}"`);
-
-      const mergedPdf = await PDFDocument.create();
-
-      for (const file of pdfFiles) {
-        const buffer = file.buffer;
-        const pdfDoc = await PDFDocument.load(new Uint8Array(buffer));
-        const totalPages = pdfDoc.getPageCount();
-
-        const toRemove = pagesToRemoveMap[file.originalname] || [];
-        const toKeep = Array.from({ length: totalPages }, (_, i) => i).filter(i => !toRemove.includes(i));
-
-        logger.info(`[File] "${file.originalname}" → Total: ${totalPages} pages | Remove: [${toRemove}] | Keep: [${toKeep}]`);
-
-        const copiedPages = await mergedPdf.copyPages(pdfDoc, toKeep);
-        copiedPages.forEach((page) => mergedPdf.addPage(page));
-      }
-
-      const finalBytes = await mergedPdf.save();
-      logger.info(`[Merge Complete] Final merged PDF generated. Sending "${filename}" (${finalBytes.length} bytes)`);
-
-      res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
-      res.setHeader('Content-Type', 'application/pdf');
-      res.send(Buffer.from(finalBytes));
-    } catch (error: any) {
-      logger.error('[PDF Merge-Preview Error]', { error: error.message });
-      res.status(500).json({ error: 'Failed to merge and remove pages.' });
-    }
-  }
-);
+router.post('/merge-with-preview', validateMergeUpload, mergeWithPreview);
 
 router.post('/fix-links', upload.single('file'), async (req, res) => {
   try {
