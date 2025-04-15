@@ -1,14 +1,13 @@
-// import JSZip from 'jszip';
-
 const fileInput = document.getElementById('fileInput');
 const form = document.getElementById('uploadForm');
 const previewContainer = document.getElementById('previewContainer');
 const loader = document.getElementById('loader');
 
-let pagesToRemove = [];
+// Updated structure: { [filename]: [page indices to remove] }
+let pagesToRemove = {};
 
 fileInput.addEventListener('change', async () => {
-  pagesToRemove = [];
+  pagesToRemove = {};
   previewContainer.innerHTML = '';
 
   const files = fileInput.files;
@@ -35,6 +34,10 @@ async function renderPDF(file, filename) {
   const arrayBuffer = await file.arrayBuffer();
   const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
 
+  if (!pagesToRemove[filename]) {
+    pagesToRemove[filename] = [];
+  }
+
   for (let i = 0; i < pdf.numPages; i++) {
     const page = await pdf.getPage(i + 1);
     const canvas = document.createElement('canvas');
@@ -43,7 +46,6 @@ async function renderPDF(file, filename) {
 
     canvas.height = viewport.height;
     canvas.width = viewport.width;
-
     await page.render({ canvasContext: context, viewport }).promise;
 
     const pageWrapper = document.createElement('div');
@@ -55,11 +57,12 @@ async function renderPDF(file, filename) {
 
     checkbox.addEventListener('change', () => {
       const pageNum = parseInt(checkbox.dataset.page);
+
       if (checkbox.checked) {
-        pagesToRemove.push(pageNum);
+        pagesToRemove[filename].push(pageNum);
         pageWrapper.classList.add('selected');
       } else {
-        pagesToRemove = pagesToRemove.filter(p => p !== pageNum);
+        pagesToRemove[filename] = pagesToRemove[filename].filter(p => p !== pageNum);
         pageWrapper.classList.remove('selected');
       }
     });

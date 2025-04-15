@@ -1,18 +1,69 @@
 extends layout
 
-block content
-  h1 PDF Blend
-  p A simple web tool to merge PDFs — with or without removing pages visually.
+block sidebarForm
+  // leave empty to skip sidebar form on this page
 
-  h2 Choose an action:
+block pageContent
+  .home-content
+    h1 PDF Blend 🧩
+    p.tagline A simple web tool to merge PDFs — with or without removing pages visually.
 
-  ul
-    li
-      a(href='/merge') ➕ Merge PDFs (Standard)
-    li
-      a(href='/merge-with-preview') ✂️ Merge PDFs with Visual Page Removal
-    li
-      a(href='/remove') 🧼 Remove Pages from a Single PDF
+    .card
+      h2 Choose an Action:
+      ul.link-list
+        li
+          a(href='/merge') ➕ Merge PDFs (Standard)
+        li
+          a(href='/merge-with-preview') ✂️ Merge PDFs with Visual Page Removal
+        li
+          a(href='/remove') 🧼 Remove Pages from a Single PDF
 
-  br
-  p You can upload multiple PDF files or even a ZIP archive, and optionally remove pages before combining.
+      p.note You can upload multiple PDF files or even a ZIP archive, and optionally remove pages before combining.
+      
+block styles
+  style.
+    .home-content {
+      padding: 40px 50px;
+    }
+
+    .card {
+      background: #ffffff;
+      padding: 30px 40px;
+      border-radius: 12px;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+      max-width: 600px;
+    }
+
+    .tagline {
+      font-size: 16px;
+      color: #666;
+      margin-bottom: 24px;
+    }
+
+    ul.link-list {
+      list-style: none;
+      padding: 0;
+      margin: 0 0 20px;
+    }
+
+    ul.link-list li {
+      margin: 14px 0;
+    }
+
+    ul.link-list a {
+      text-decoration: none;
+      font-size: 16px;
+      color: #007bff;
+      font-weight: 500;
+      transition: all 0.2s ease-in-out;
+    }
+
+    ul.link-list a:hover {
+      color: #0056b3;
+      text-decoration: underline;
+    }
+
+    .note {
+      font-size: 14px;
+      color: #888;
+    }
