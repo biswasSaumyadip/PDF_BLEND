@@ -1,69 +1,402 @@
 extends layout
 
 block sidebarForm
-  form#uploadForm(action='/pdf/merge' method='POST' enctype='multipart/form-data')
-    label(for='fileInput') Upload PDF(s) or ZIP:
-    input(type='file' id='fileInput' name='files' accept='.pdf,.zip' multiple)
-
-    label(for='filename') Output File Name:
-    input(type='text' id='filename' name='filename' placeholder='MergedFile.pdf')
-
-    button(type='submit') Merge PDFs
-
-    // 🔄 Loader UI inside form
-    #loader(style='display: none; margin-top: 16px;')
-      p Merging PDFs... Please wait...
+  .form-container
+    h3.section-title Merge PDFs
+    
+    form#uploadForm(action='/pdf/merge' method='POST' enctype='multipart/form-data')
+      .form-group
+        label.form-label
+          i.fas.fa-file-upload
+          span Upload PDF(s) or ZIP:
+        
+        .file-upload-area#dropZone
+          i.fas.fa-cloud-upload-alt.upload-icon
+          p.drop-text Drag and drop files here
+          p.drop-text or
+          label.browse-button(for='fileInput') Browse Files
+          input#fileInput.file-input(type='file' name='files' accept='.pdf,.zip' multiple hidden)
+      
+      .file-count-label
+        span#fileCount 0 files selected
+      
+      .form-group
+        label.form-label
+          i.fas.fa-file-signature
+          span Output File Name:
+        input.form-control(type='text' id='filename' name='filename' placeholder='MergedFile.pdf')
+      
+      button.action-button(type='submit')
+        i.fas.fa-object-group
+        span Merge PDFs
+      
+      #loader.loader(style='display: none;')
+        .loader-spinner
+        p Processing...
 
 block pageContent
-  h2 Merged output will be downloaded after processing.
+  .content-card
+    .card-header
+      i.fas.fa-info-circle
+      h2 Ready to merge your PDFs
+    
+    p.card-description Your merged document will be downloaded automatically after processing is complete.
+    
+    .preview-container
+      .preview-placeholder
+        i.far.fa-file-pdf.preview-icon
+        p.preview-text Ready to preview your merged PDF
 
 block styles
   style.
-    html, body {
+    /* Global Styles */
+    :root {
+      --primary: #4361ee;
+      --sidebar-bg: #ffffff;
+      --content-bg: #f0f5fa;
+      --text: #333;
+      --light-text: #666;
+      --border: #e0e0e0;
+      --hover: #f5f5f5;
+      --active: #e6f0ff;
+      --shadow: 0 2px 10px rgba(0,0,0,0.05);
+      --radius: 8px;
+    }
+    
+    * {
+      box-sizing: border-box;
       margin: 0;
       padding: 0;
-      height: 100vh;
-      width: 100vw;
-      font-family: system-ui, sans-serif;
-      background: #f0f0f0;
     }
-
+    
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+      color: var(--text);
+      background: var(--content-bg);
+      line-height: 1.5;
+    }
+    
     .workspace {
       display: flex;
-      height: 100vh;
-      width: 100vw;
+      min-height: 100vh;
     }
-
-    main.preview-panel {
+    
+    /* Sidebar Styles */
+    .sidebar {
+      width: 230px;
+      background: var(--sidebar-bg);
+      border-right: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      flex-shrink: 0;
+      z-index: 10;
+    }
+    
+    .sidebar-header {
+      padding: 1.25rem 1rem;
+      border-bottom: 1px solid var(--border);
+    }
+    
+    .app-title {
+      display: flex;
+      align-items: center;
+      font-size: 1.2rem;
+      font-weight: 600;
+      text-decoration: none;
+      color: var(--primary);
+    }
+    
+    .app-title i {
+      margin-right: 0.5rem;
+      font-size: 1.1rem;
+    }
+    
+    .sidebar-nav {
+      padding: 1rem 0;
+    }
+    
+    .nav-list {
+      list-style: none;
+    }
+    
+    .nav-item {
+      margin: 0.25rem 0;
+    }
+    
+    .nav-link {
+      display: flex;
+      align-items: center;
+      padding: 0.75rem 1rem;
+      text-decoration: none;
+      color: var(--text);
+      border-radius: 4px;
+      margin: 0 0.5rem;
+      transition: all 0.2s ease;
+    }
+    
+    .nav-link:hover {
+      background: var(--hover);
+    }
+    
+    .nav-item.active .nav-link {
+      background: var(--active);
+      color: var(--primary);
+      font-weight: 500;
+    }
+    
+    .nav-link i {
+      width: 20px;
+      margin-right: 0.75rem;
+      font-size: 0.9rem;
+    }
+    
+    .sidebar-content {
+      padding: 1rem;
       flex: 1;
-      padding: 30px 40px;
+    }
+    
+    /* Form Styles */
+    .section-title {
+      font-weight: 600;
+      font-size: 1.1rem;
+      margin-bottom: 1rem;
+      color: var(--text);
+    }
+    
+    .form-group {
+      margin-bottom: 1rem;
+    }
+    
+    .form-label {
+      display: flex;
+      align-items: center;
+      margin-bottom: 0.5rem;
+      font-size: 0.9rem;
+      color: var(--light-text);
+    }
+    
+    .form-label i {
+      margin-right: 0.5rem;
+      color: var(--primary);
+    }
+    
+    .file-upload-area {
+      border: 2px dashed var(--border);
+      border-radius: var(--radius);
+      padding: 1.5rem 1rem;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      background: var(--hover);
+    }
+    
+    .file-upload-area:hover {
+      border-color: var(--primary);
+    }
+    
+    .upload-icon {
+      font-size: 1.5rem;
+      color: var(--primary);
+      margin-bottom: 0.75rem;
+    }
+    
+    .drop-text {
+      font-size: 0.85rem;
+      color: var(--light-text);
+      margin: 0.25rem 0;
+    }
+    
+    .browse-button {
+      display: inline-block;
+      color: var(--primary);
+      font-weight: 500;
+      cursor: pointer;
+      padding: 0.5rem 1rem;
+      background: white;
+      border-radius: 4px;
+      border: 1px solid var(--primary);
+      font-size: 0.85rem;
+      margin-top: 0.5rem;
+    }
+    
+    .file-count-label {
+      font-size: 0.85rem;
+      color: var(--light-text);
+      margin: 0.75rem 0;
+    }
+    
+    .form-control {
+      width: 100%;
+      padding: 0.75rem;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      font-size: 0.9rem;
+    }
+    
+    .form-control:focus {
+      outline: none;
+      border-color: var(--primary);
+    }
+    
+    .action-button {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 100%;
+      padding: 0.75rem;
+      background: var(--primary);
+      color: white;
+      border: none;
+      border-radius: var(--radius);
+      font-weight: 500;
+      cursor: pointer;
+      font-size: 0.9rem;
+      transition: all 0.2s ease;
+    }
+    
+    .action-button:hover {
+      opacity: 0.9;
+    }
+    
+    .action-button i {
+      margin-right: 0.5rem;
+    }
+    
+    .loader {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      margin-top: 1rem;
+    }
+    
+    .loader-spinner {
+      border: 3px solid rgba(0,0,0,0.1);
+      border-radius: 50%;
+      border-top: 3px solid var(--primary);
+      width: 20px;
+      height: 20px;
+      animation: spin 1s linear infinite;
+      margin-bottom: 0.5rem;
+    }
+    
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+    
+    /* Content Styles */
+    .content {
+      flex: 1;
+      padding: 2rem;
       overflow-y: auto;
     }
-
-    aside.sidebar input,
-    aside.sidebar button {
-      font-size: 14px;
-      padding: 8px;
-      border-radius: 4px;
-      border: 1px solid #ccc;
-      width: 100%;
-      margin-bottom: 12px;
+    
+    .content-card {
+      background: white;
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: 2rem;
+      max-width: 800px;
+      margin: 0 auto;
     }
-
-    aside.sidebar button {
-      background-color: #007bff;
-      color: white;
-      font-weight: bold;
-      cursor: pointer;
-      border: none;
+    
+    .card-header {
+      display: flex;
+      align-items: center;
+      margin-bottom: 1rem;
     }
-
-    #loader {
-      font-weight: bold;
-      color: #333;
+    
+    .card-header i {
+      font-size: 1.5rem;
+      color: var(--primary);
+      margin-right: 0.75rem;
+    }
+    
+    .card-header h2 {
+      font-size: 1.5rem;
+      font-weight: 600;
+    }
+    
+    .card-description {
+      color: var(--light-text);
+      margin-bottom: 2rem;
+    }
+    
+    .preview-container {
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      background: var(--hover);
+      min-height: 300px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+    
+    .preview-placeholder {
+      text-align: center;
+      color: var(--light-text);
+    }
+    
+    .preview-icon {
+      font-size: 3rem;
+      margin-bottom: 1rem;
+      color: #aaa;
     }
 
 block scripts
   script(src='https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js')
   script(src='https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js')
   script(type='module' src='/javascripts/script.mjs')
+  script.
+    // File upload handling
+    const dropZone = document.getElementById('dropZone');
+    const fileInput = document.getElementById('fileInput');
+    const fileCount = document.getElementById('fileCount');
+    
+    dropZone.addEventListener('click', () => {
+      fileInput.click();
+    });
+    
+    dropZone.addEventListener('dragover', (e) => {
+      e.preventDefault();
+      dropZone.style.borderColor = '#4361ee';
+      dropZone.style.backgroundColor = '#e6f0ff';
+    });
+    
+    dropZone.addEventListener('dragleave', (e) => {
+      e.preventDefault();
+      dropZone.style.borderColor = '#e0e0e0';
+      dropZone.style.backgroundColor = '#f5f5f5';
+    });
+    
+    dropZone.addEventListener('drop', (e) => {
+      e.preventDefault();
+      dropZone.style.borderColor = '#e0e0e0';
+      dropZone.style.backgroundColor = '#f5f5f5';
+      
+      if (e.dataTransfer.files.length) {
+        fileInput.files = e.dataTransfer.files;
+        updateFileCount();
+      }
+    });
+    
+    fileInput.addEventListener('change', updateFileCount);
+    
+    function updateFileCount() {
+      const count = fileInput.files.length;
+      fileCount.textContent = `${count} file${count !== 1 ? 's' : ''} selected`;
+    }
+    
+    // Form submission
+    const form = document.getElementById('uploadForm');
+    const loader = document.getElementById('loader');
+    
+    form.addEventListener('submit', (e) => {
+      if (fileInput.files.length === 0) {
+        e.preventDefault();
+        alert('Please select at least one file to merge');
+        return;
+      }
+      
+      loader.style.display = 'flex';
+    });
