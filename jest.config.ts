@@ -7,6 +7,7 @@ const config: Config = {
   transform: {
     '^.+\\.tsx?$': 'ts-jest',
   },
+  coveragePathIgnorePatterns: ['/node_modules/', 'src/utils/logger.ts'],
 };
 
 export default config;
