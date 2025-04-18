@@ -1,0 +1,20 @@
+mixin file-uploader(options = {})
+  - const { id = 'fileInput', accept = '', multiple = true, description = 'Drag and drop files here' } = options
+  .file-uploader(data-uploader)
+    .upload-area#dropZone
+      .drop-zone-content
+        i.fas.fa-cloud-upload-alt
+        p.drop-text= description
+        p.drop-text-or or
+        button.btn.btn-secondary.browse-btn#browseFiles(type='button')
+          i.fas.fa-folder-open
+          span Browse Files
+        input.file-input(
+          type='file'
+          id=id
+          accept=accept
+          multiple=multiple
+          hidden
+        )
+    .file-list#fileList
+      p.file-status 0 files selected

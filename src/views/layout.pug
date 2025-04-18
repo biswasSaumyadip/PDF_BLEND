@@ -3,11 +3,11 @@ html
   head
     title= title
     meta(charset='utf-8')
-    meta(name='viewport', content='width=device-width, initial-scale=1')
-    link(rel='stylesheet', href='https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css')
-    link(rel='stylesheet', href='/stylesheets/style.css')
-    link(rel='stylesheet', href='/stylesheets/sidebar.css')
-    link(rel='stylesheet', href='/stylesheets/loader.css')
+    meta(name='viewport' content='width=device-width, initial-scale=1')
+    link(rel='stylesheet' href='https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css')
+    link(rel='stylesheet' href='/stylesheets/style.css')
+    link(rel='stylesheet' href='/stylesheets/sidebar.css')
+    link(rel='stylesheet' href='/stylesheets/loader.css')
     block styles
   body
     include components/loader
@@ -17,24 +17,24 @@ html
           a.app-title(href='/')
             i.far.fa-file-pdf
             span PDF Tools
-        
+
         nav.sidebar-nav
           ul.nav-list
             li.nav-item(class=activePage === 'remove' ? 'active' : '')
               a.nav-link(href='/remove')
                 i.fas.fa-trash-alt
                 span Remove Pages
-            
+
             li.nav-item(class=activePage === 'merge' ? 'active' : '')
               a.nav-link(href='/merge')
                 i.fas.fa-object-group
                 span Merge PDFs
-            
+
             li.nav-item(class=activePage === 'merge-with-preview' ? 'active' : '')
               a.nav-link(href='/merge-with-preview')
                 i.fas.fa-cut
                 span Merge with Preview
-            
+
             li.nav-item(class=activePage === 'fix-links' ? 'active' : '')
               a.nav-link(href='/fix-links')
                 i.fas.fa-link

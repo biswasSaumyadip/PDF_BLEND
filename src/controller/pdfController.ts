@@ -8,7 +8,7 @@ export const mergeWithPreview = async (req: Request, res: Response) => {
     const files = (req.files as { [fieldname: string]: Express.Multer.File[] })['files'] || [];
     const filename = req.body.filename || 'MergedPreview.pdf';
     let pagesToRemoveMap = {};
-    
+
     try {
       pagesToRemoveMap = JSON.parse(req.body.pagesToRemove || '{}');
     } catch (error) {
@@ -31,7 +31,7 @@ export const mergeWithPreview = async (req: Request, res: Response) => {
     res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
     res.setHeader('Content-Type', 'application/pdf');
     res.send(mergedBuffer);
-    
+
     logger.info('[Merge Complete] Successfully merged PDFs with preview');
   } catch (error: any) {
     logger.error('[PDF Merge Controller Error]', { error: error.message, stack: error.stack });

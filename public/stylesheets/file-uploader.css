@@ -1,0 +1,155 @@
+.file-uploader {
+  width: 100%;
+  margin-bottom: 1.5rem;
+}
+
+.file-uploader .upload-area {
+  border: 2px dashed #e2e8f0;
+  border-radius: 8px;
+  padding: 2rem;
+  text-align: center;
+  background: #f8fafc;
+  transition: all 0.2s ease;
+  cursor: pointer;
+}
+
+.file-uploader .upload-area.drag-over {
+  border-color: var(--primary);
+  background: var(--active);
+}
+
+.file-uploader .drop-zone-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.file-uploader .drop-zone-content i {
+  font-size: 2.5rem;
+  color: var(--primary);
+  margin-bottom: 1rem;
+}
+
+.file-uploader .drop-text {
+  color: var(--text);
+  margin: 0.5rem 0;
+  font-size: 1rem;
+}
+
+.file-uploader .drop-text-or {
+  color: var(--light-text);
+  font-size: 0.875rem;
+  margin: 0.5rem 0;
+}
+
+.file-uploader .browse-btn {
+  margin-top: 1rem;
+  padding: 0.5rem 1.5rem;
+}
+
+.file-uploader .file-list {
+  margin-top: 1rem;
+  text-align: center;
+}
+
+.file-uploader .file-status {
+  color: var(--light-text);
+  font-size: 0.875rem;
+  margin: 0;
+}
+
+.file-uploader .file-status i {
+  color: var(--primary);
+}
+
+/* File Items */
+.file-uploader .file-item {
+  display: flex;
+  align-items: center;
+  padding: 0.75rem;
+  background: white;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  margin: 0.5rem 0;
+  gap: 0.75rem;
+}
+
+.file-uploader .file-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.file-uploader .file-name {
+  color: var(--text);
+  font-size: 0.85rem;
+  margin: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.file-uploader .file-size {
+  color: var(--light-text);
+  font-size: 0.75rem;
+  margin: 0.25rem 0 0 0;
+}
+
+.file-uploader .file-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.file-uploader .remove-file {
+  color: var(--light-text);
+  background: none;
+  border: none;
+  padding: 0.25rem;
+  cursor: pointer;
+  font-size: 0.85rem;
+  transition: color 0.2s ease;
+}
+
+.file-uploader .remove-file:hover {
+  color: #dc2626;
+}
+
+/* Error Message */
+.file-uploader .error-message {
+  display: none;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem;
+  background: #fee2e2;
+  color: #dc2626;
+  border-radius: var(--radius);
+  margin-top: 0.5rem;
+  font-size: 0.85rem;
+}
+
+.file-uploader .error-message.show {
+  display: flex;
+}
+
+.file-uploader .error-message i {
+  font-size: 1rem;
+}
+
+/* Responsive */
+@media (max-width: 640px) {
+  .file-uploader .upload-area {
+    padding: 1rem;
+  }
+
+  .file-uploader .drop-zone-content i {
+    font-size: 1.25rem;
+  }
+
+  .file-uploader .drop-text {
+    font-size: 0.8rem;
+  }
+
+  .file-uploader .file-item {
+    padding: 0.5rem;
+  }
+}

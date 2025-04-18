@@ -25,7 +25,6 @@ fileInput.addEventListener('change', async () => {
 
     const label = document.createElement('div');
 
-
     await page.render({ canvasContext: context, viewport }).promise;
 
     const pageWrapper = document.createElement('div');
@@ -33,11 +32,11 @@ fileInput.addEventListener('change', async () => {
     pageWrapper.style.width = `${canvas.width}px`;
     pageWrapper.style.height = `${canvas.height}px`;
     pageWrapper.style.position = 'relative';
-    
+
     label.textContent = `Page ${i + 1}`;
     label.className = 'page-label';
     pageWrapper.appendChild(label);
-    
+
     pageWrapper.appendChild(canvas);
     previewContainer.appendChild(pageWrapper);
 

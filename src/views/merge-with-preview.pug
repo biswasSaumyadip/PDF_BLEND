@@ -11,7 +11,7 @@ block sidebarForm
             i.fas.fa-cloud-upload-alt
             p.drop-text Drag and drop files here
             p.drop-text-or or
-            button.btn.btn-secondary.browse-btn#browseFiles
+            button.btn.btn-secondary.browse-btn#browseFiles(type='button')
               i.fas.fa-folder-open
               span Browse Files
           input(type='file' id='fileInput' name='files' accept='.pdf,.zip' multiple hidden)
@@ -134,6 +134,91 @@ block styles
       font-size: 1rem;
     }
 
+    /* Upload Area */
+    .upload-area {
+      border: 2px dashed #e2e8f0;
+      border-radius: 8px;
+      padding: 2rem;
+      text-align: center;
+      background: #f8fafc;
+      transition: all 0.2s ease;
+      cursor: pointer;
+    }
+
+    .upload-area.drag-over {
+      border-color: var(--primary);
+      background: var(--active);
+    }
+
+    .drop-zone-content {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .drop-zone-content i {
+      font-size: 2.5rem;
+      color: var(--primary);
+      margin-bottom: 1rem;
+    }
+
+    .drop-text {
+      color: var(--text);
+      margin: 0.5rem 0;
+      font-size: 1rem;
+    }
+
+    .drop-text-or {
+      color: var(--light-text);
+      font-size: 0.875rem;
+      margin: 0.5rem 0;
+    }
+
+    .browse-btn {
+      margin-top: 1rem;
+      padding: 0.5rem 1.5rem;
+    }
+
+    .file-list {
+      margin-top: 1rem;
+      text-align: center;
+    }
+
+    .file-status {
+      color: var(--light-text);
+      font-size: 0.875rem;
+      margin: 0;
+    }
+
+    /* Form Controls */
+    .form-group {
+      margin-bottom: 1.25rem;
+    }
+
+    .form-label {
+      display: block;
+      font-size: 0.85rem;
+      font-weight: 500;
+      color: var(--light-text);
+      margin-bottom: 0.5rem;
+    }
+
+    .form-input {
+      width: 100%;
+      padding: 0.75rem;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      background: var(--hover);
+      color: var(--text);
+      font-size: 0.85rem;
+      transition: border-color 0.2s ease;
+    }
+
+    .form-input:focus {
+      outline: none;
+      border-color: var(--primary);
+    }
+
     /* File Grid Layout */
     .preview-grid {
       display: flex;
@@ -241,75 +326,7 @@ block styles
       border-color: var(--primary);
     }
 
-    /* Sidebar Form Styles */
-    .sidebar-title {
-      color: var(--text);
-      font-size: 1.1rem;
-      font-weight: 600;
-      margin-bottom: 1.25rem;
-    }
-
-    .form-group {
-      margin-bottom: 1.25rem;
-    }
-
-    .form-label {
-      display: block;
-      font-size: 0.85rem;
-      font-weight: 500;
-      color: var(--light-text);
-      margin-bottom: 0.5rem;
-    }
-
-    .upload-area {
-      border: 2px dashed var(--border);
-      border-radius: var(--radius);
-      padding: 1.25rem;
-      background: var(--hover);
-      transition: all 0.2s ease;
-    }
-
-    .upload-area.drag-over {
-      border-color: var(--primary);
-      background: var(--active);
-    }
-
-    .drop-zone-content i {
-      font-size: 1.5rem;
-      color: var(--primary);
-      margin-bottom: 0.75rem;
-    }
-
-    .drop-text {
-      color: var(--text);
-      margin: 0.25rem 0;
-      font-size: 0.85rem;
-    }
-
-    .drop-text-or {
-      color: var(--light-text);
-      font-size: 0.75rem;
-      margin: 0.25rem 0;
-    }
-
-    /* Form Controls */
-    .form-input {
-      width: 100%;
-      padding: 0.6rem;
-      border: 1px solid var(--border);
-      border-radius: var(--radius);
-      background: var(--hover);
-      color: var(--text);
-      font-size: 0.85rem;
-      transition: border-color 0.2s ease;
-    }
-
-    .form-input:focus {
-      outline: none;
-      border-color: var(--primary);
-    }
-
-    /* Responsive Adjustments */
+    /* Responsive */
     @media (max-width: 1200px) {
       .pages-grid {
         grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
