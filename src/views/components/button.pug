@@ -1,0 +1,11 @@
+mixin button(type = 'button', variant = 'primary', icon = null, text = '', extraClasses = '')
+  button.btn(
+    type=type
+    class=`btn-${variant} ${extraClasses}`
+  )&attributes(attributes)
+    if icon
+      i(class=icon)
+    if text
+      span.btn-text= text
+    if block
+      block
