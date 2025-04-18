@@ -2,6 +2,7 @@ import { Request, Response } from 'express';
 import { mergePdfWithRemovals } from '../services/pdfMergeService';
 import logger from '../utils/logger';
 import { PDFService } from '../services/pdfService';
+import { sendPDFResponse } from '../utils/pdfResponse';
 
 export const mergeWithPreview = async (req: Request, res: Response) => {
   try {
@@ -32,9 +33,7 @@ export const mergeWithPreview = async (req: Request, res: Response) => {
 
     const mergedBuffer = await mergePdfWithRemovals(files, pagesToRemoveMap);
 
-    res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
-    res.setHeader('Content-Type', 'application/pdf');
-    res.send(mergedBuffer);
+    sendPDFResponse(res, filename, mergedBuffer);
 
     logger.info('[Merge Complete] Successfully merged PDFs with preview');
   } catch (error: any) {

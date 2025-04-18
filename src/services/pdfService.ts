@@ -13,6 +13,7 @@ import { Request, Response } from 'express';
 import AdmZip from 'adm-zip';
 import logger from '../utils/logger';
 import { LinkPageMap } from '../types/types';
+import { sendPDFResponse } from '../utils/pdfResponse';
 
 export class PDFService {
   static async mergePDFs(pdfs: Buffer[]): Promise<Buffer> {
@@ -363,13 +364,7 @@ export class PDFService {
       const actionType = action.get(PDFName.of('S'));
       if (actionType instanceof PDFName && actionType.asString() === 'GoTo') {
         const actionDest = action.get(PDFName.of('D'));
-        if (
-          actionDest &&
-          (actionDest instanceof PDFArray ||
-            actionDest instanceof PDFRef ||
-            actionDest instanceof PDFName ||
-            actionDest instanceof PDFString)
-        ) {
+        if (actionDest && this.isValidDestinationObject(actionDest)) {
           this.updateDestinationTarget(pdfDoc, actionDest, newPageRef);
           return;
         }
@@ -469,9 +464,7 @@ export const mergePDFsHandler = async (req: Request, res: Response) => {
 
       logger.info(`[mergePDFsHandler] Successfully merged PDFs, sending response`);
 
-      res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
-      res.setHeader('Content-Type', 'application/pdf');
-      res.send(mergedPdf);
+      sendPDFResponse(res, filename, mergedPdf);
     } else {
       const zipFile = files['zip'] ? files['zip'][0].buffer : null;
 
@@ -481,9 +474,7 @@ export const mergePDFsHandler = async (req: Request, res: Response) => {
 
         logger.info(`[mergePDFsHandler] Successfully merged PDFs from ZIP`);
 
-        res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
-        res.setHeader('Content-Type', 'application/pdf');
-        res.send(mergedPdf);
+        sendPDFResponse(res, filename, mergedPdf);
       } else if (files['pdfs']) {
         // Handle regular PDF files
         const pdfFiles = files['pdfs'] as Express.Multer.File[];
@@ -494,9 +485,7 @@ export const mergePDFsHandler = async (req: Request, res: Response) => {
 
         logger.info(`[mergePDFsHandler] Successfully merged PDFs, sending response`);
 
-        res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
-        res.setHeader('Content-Type', 'application/pdf');
-        res.send(mergedPdf);
+        sendPDFResponse(res, filename, mergedPdf);
       } else {
         logger.warn(`[mergePDFsHandler] No valid files uploaded`);
         res.status(400).send('No files uploaded.');
