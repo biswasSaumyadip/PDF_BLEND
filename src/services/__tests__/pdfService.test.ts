@@ -1,6 +1,6 @@
+import AdmZip from 'adm-zip';
 import { PDFDocument } from 'pdf-lib';
 import { PDFService } from '../pdfService';
-import AdmZip from 'adm-zip';
 
 describe('PDFService', () => {
   describe('mergePDFs', () => {
@@ -83,7 +83,7 @@ describe('PDFService', () => {
       const mergedBuffer = await PDFService.mergePDFs([
         Buffer.from(validPdfBytes),
         invalidPdfBuffer,
-        Buffer.from(validPdfBytes)
+        Buffer.from(validPdfBytes),
       ]);
 
       const mergedDoc = await PDFDocument.load(new Uint8Array(mergedBuffer));
@@ -94,11 +94,11 @@ describe('PDFService', () => {
   describe('mergeFromZip', () => {
     it('should extract and merge PDFs from zip', async () => {
       const zip = new AdmZip();
-      
+
       const pdf1 = await PDFDocument.create();
       pdf1.addPage();
       const pdf1Bytes = await pdf1.save();
-      
+
       const pdf2 = await PDFDocument.create();
       pdf2.addPage();
       pdf2.addPage();
@@ -106,10 +106,10 @@ describe('PDFService', () => {
 
       zip.addFile('1.pdf', Buffer.from(pdf1Bytes));
       zip.addFile('2.pdf', Buffer.from(pdf2Bytes));
-      
+
       const zipBuffer = zip.toBuffer();
       const result = await PDFService.mergeFromZip(zipBuffer);
-      
+
       const mergedDoc = await PDFDocument.load(new Uint8Array(result));
       expect(mergedDoc.getPageCount()).toBe(3);
     });
@@ -117,7 +117,7 @@ describe('PDFService', () => {
     it('should handle zip with no PDFs', async () => {
       const zip = new AdmZip();
       zip.addFile('test.txt', Buffer.from('not a pdf'));
-      
+
       const result = await PDFService.mergeFromZip(zip.toBuffer());
       const mergedDoc = await PDFDocument.load(new Uint8Array(result));
       expect(mergedDoc.getPageCount()).toBe(0);
@@ -125,14 +125,13 @@ describe('PDFService', () => {
 
     it('should handle corrupted zip file', async () => {
       const corruptedZipBuffer = Buffer.from('corrupted zip content');
-      
-      await expect(PDFService.mergeFromZip(corruptedZipBuffer))
-        .rejects.toThrow();
+
+      await expect(PDFService.mergeFromZip(corruptedZipBuffer)).rejects.toThrow();
     });
 
     it('should handle zip with mixed valid and invalid PDFs', async () => {
       const zip = new AdmZip();
-      
+
       const validPdf = await PDFDocument.create();
       validPdf.addPage();
       const validPdfBytes = await validPdf.save();
@@ -157,7 +156,7 @@ describe('PDFService', () => {
 
       const result = await PDFService.removePages(Buffer.from(pdfBytes), [1]);
       const modifiedDoc = await PDFDocument.load(new Uint8Array(result));
-      
+
       expect(modifiedDoc.getPageCount()).toBe(2);
     });
 
@@ -168,7 +167,7 @@ describe('PDFService', () => {
 
       const result = await PDFService.removePages(Buffer.from(pdfBytes), [5]);
       const modifiedDoc = await PDFDocument.load(new Uint8Array(result));
-      
+
       expect(modifiedDoc.getPageCount()).toBe(1);
     });
 
@@ -220,7 +219,7 @@ describe('PDFService', () => {
         [Buffer.from(pdf1Bytes), Buffer.from(pdf2Bytes)],
         [1]
       );
-      
+
       const modifiedDoc = await PDFDocument.load(new Uint8Array(result));
       expect(modifiedDoc.getPageCount()).toBe(2);
     });
@@ -240,14 +239,11 @@ describe('PDFService', () => {
       const pdfBytes = await pdf.save();
 
       const linksToFix = {
-        '0': [{ oldTarget: 1, newTarget: 0 }]
+        '0': [{ oldTarget: 1, newTarget: 0 }],
       };
 
-      const result = await PDFService.fixInternalLinks(
-        Buffer.from(pdfBytes),
-        linksToFix
-      );
-      
+      const result = await PDFService.fixInternalLinks(Buffer.from(pdfBytes), linksToFix);
+
       expect(Buffer.isBuffer(result)).toBe(true);
     });
 
@@ -257,14 +253,11 @@ describe('PDFService', () => {
       const pdfBytes = await pdf.save();
 
       const linksToFix = {
-        '99': [{ oldTarget: 1, newTarget: 0 }]
+        '99': [{ oldTarget: 1, newTarget: 0 }],
       };
 
-      const result = await PDFService.fixInternalLinks(
-        Buffer.from(pdfBytes),
-        linksToFix
-      );
-      
+      const result = await PDFService.fixInternalLinks(Buffer.from(pdfBytes), linksToFix);
+
       expect(Buffer.isBuffer(result)).toBe(true);
     });
 
@@ -283,7 +276,7 @@ describe('PDFService', () => {
       const pdfBytes = await pdf.save();
 
       const linksToFix = {
-        '0': [{ oldTarget: -1, newTarget: 999 }]
+        '0': [{ oldTarget: -1, newTarget: 999 }],
       };
 
       const result = await PDFService.fixInternalLinks(Buffer.from(pdfBytes), linksToFix);
@@ -293,11 +286,10 @@ describe('PDFService', () => {
     it('should handle corrupted PDF', async () => {
       const corruptedPdf = Buffer.from('corrupted pdf content');
       const linksToFix = {
-        '0': [{ oldTarget: 0, newTarget: 1 }]
+        '0': [{ oldTarget: 0, newTarget: 1 }],
       };
 
-      await expect(PDFService.fixInternalLinks(corruptedPdf, linksToFix))
-        .rejects.toThrow();
+      await expect(PDFService.fixInternalLinks(corruptedPdf, linksToFix)).rejects.toThrow();
     });
   });
 });

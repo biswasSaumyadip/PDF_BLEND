@@ -72,15 +72,16 @@ export class PDFService {
     const totalPages = pdfDoc.getPageCount();
 
     // Filter out invalid page indices
-    const validPagesToRemove = pagesToRemove.filter(i => i >= 0 && i < totalPages);
+    const validPagesToRemove = pagesToRemove.filter((i) => i >= 0 && i < totalPages);
 
-    const pagesToKeep = Array.from({ length: totalPages }, (_, i) => i)
-      .filter(i => !validPagesToRemove.includes(i));
+    const pagesToKeep = Array.from({ length: totalPages }, (_, i) => i).filter(
+      (i) => !validPagesToRemove.includes(i)
+    );
 
     const newPdf = await PDFDocument.create();
     if (pagesToKeep.length > 0) {
       const copiedPages = await newPdf.copyPages(pdfDoc, pagesToKeep);
-      copiedPages.forEach(page => newPdf.addPage(page));
+      copiedPages.forEach((page) => newPdf.addPage(page));
     }
 
     const pdfBytes = await newPdf.save({ addDefaultPage: false });
@@ -105,12 +106,13 @@ export class PDFService {
         const currentPages = pdfDoc.getPageCount();
         logger.info(`[mergeAndRemovePages] Processing PDF with ${currentPages} pages`);
 
-        const keepPages = Array.from({ length: currentPages }, (_, i) => i)
-          .filter(i => !pagesToRemove.includes(i + pageOffset));
+        const keepPages = Array.from({ length: currentPages }, (_, i) => i).filter(
+          (i) => !pagesToRemove.includes(i + pageOffset)
+        );
 
         if (keepPages.length > 0) {
           const copied = await mergedPdf.copyPages(pdfDoc, keepPages);
-          copied.forEach(page => mergedPdf.addPage(page));
+          copied.forEach((page) => mergedPdf.addPage(page));
           totalPages += copied.length;
         }
 
