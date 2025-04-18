@@ -1,18 +1,37 @@
 extends layout
 
 block sidebarForm
-  form#uploadForm(action='/pdf/remove' method='POST' enctype='multipart/form-data')
-    label(for='fileInput') Upload PDF:
-    input(type='file' id='fileInput' name='file' accept='application/pdf')
+  .sidebar-content
+    h3.sidebar-title Remove PDF Pages
+    form.sidebar-form#uploadForm(action='/pdf/remove' method='POST' enctype='multipart/form-data')
+      +file-uploader({
+        id: 'fileInput',
+        accept: 'application/pdf',
+        multiple: false,
+        description: 'Drop your PDF file here'
+      })
 
-    label(for='filename') Output File Name:
-    input(type='text' id='filename' name='filename' placeholder='CleanedFile.pdf')
+      .form-group
+        label.form-label(for='filename') Output File Name:
+        input.form-input#filename(type='text' name='filename' placeholder='CleanedFile.pdf')
 
-    button(type='submit') Remove Selected Pages
+      button.btn.btn-primary.btn-block(type='submit')
+        i.fas.fa-trash-alt
+        span Remove Selected Pages
 
 block pageContent
-  h2 Preview – Select Pages to Remove
-  #previewContainer
+  .preview
+    .preview-header
+      .header-content
+        i.fas.fa-file-pdf
+        h2 Preview
+        p.header-desc Select pages to remove by clicking on them
+
+    .preview-section
+      #previewContainer.preview-container
+        .preview-placeholder
+          i.far.fa-file-pdf
+          p.preview-text Upload a PDF to preview and remove pages
 
 block styles
   style.
@@ -33,48 +52,100 @@ block styles
       width: 100%;
     }
 
-    main.preview-panel {
-      flex: 1;
-      padding: 20px;
-      overflow-y: auto;
+    .preview {
+      display: flex;
+      flex-direction: column;
+      height: 100%;
+      padding: 1rem;
     }
 
-    #previewContainer {
+    .preview-header {
+      background: var(--sidebar-bg);
+      border-radius: var(--radius);
+      padding: 1rem;
+      margin-bottom: 1rem;
+      box-shadow: var(--shadow);
+    }
+
+    .header-content {
+      text-align: center;
+    }
+
+    .header-content i {
+      font-size: 1.75rem;
+      color: var(--primary);
+      margin-bottom: 0.5rem;
+    }
+
+    .header-content h2 {
+      font-size: 1.5rem;
+      color: var(--text);
+      margin-bottom: 0.25rem;
+    }
+
+    .header-desc {
+      color: var(--light-text);
+      font-size: 0.9rem;
+    }
+
+    .preview-section {
+      flex: 1;
+      background: var(--sidebar-bg);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .preview-container {
+      flex: 1;
+      overflow-y: auto;
+      padding: 1rem;
       display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
-      gap: 20px;
-      padding: 20px;
+      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+      gap: 1rem;
+    }
+
+    .preview-placeholder {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100%;
+      color: var(--light-text);
+      background: var(--hover);
+      border-radius: var(--radius);
+      border: 2px dashed var(--border);
+      grid-column: 1 / -1;
+      padding: 2rem;
+    }
+
+    .preview-placeholder i {
+      font-size: 3rem;
+      margin-bottom: 1rem;
+      opacity: 0.5;
+      color: var(--primary);
     }
 
     .pdf-page {
-      background: white;
-      padding: 10px;
-      border: 1px solid #ccc;
-      border-radius: 4px;
+      background: var(--sidebar-bg);
+      padding: 0.75rem;
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
       text-align: center;
-      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
-      width: 220px;
+      transition: all 0.2s ease;
     }
 
     .pdf-page.selected {
-      border: 2px solid red;
-      opacity: 0.6;
+      border: 2px solid var(--primary);
+      background: var(--active);
     }
 
-    aside.sidebar input,
-    aside.sidebar button {
-      font-size: 14px;
-      padding: 8px;
-      border-radius: 4px;
-      border: 1px solid #ccc;
-    }
-
-    aside.sidebar button {
-      background-color: #007bff;
-      color: white;
-      font-weight: bold;
-      cursor: pointer;
-      border: none;
+    .pdf-page canvas {
+      width: 100%;
+      height: auto;
+      border-radius: calc(var(--radius) - 2px);
     }
 
 block scripts

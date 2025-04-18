@@ -8,9 +8,12 @@ html
     link(rel='stylesheet' href='/stylesheets/style.css')
     link(rel='stylesheet' href='/stylesheets/sidebar.css')
     link(rel='stylesheet' href='/stylesheets/loader.css')
+    link(rel='stylesheet' href='/stylesheets/file-uploader.css')
+    link(rel='stylesheet' href='/stylesheets/button.css')
     block styles
   body
     include components/loader
+    include components/file-uploader
     .workspace
       aside.sidebar
         .sidebar-header
@@ -48,3 +51,7 @@ html
 
     +loader()
     block scripts
+    script(type='module' src='/javascripts/components/file-uploader.mjs')
+    script(type='module').
+      import { initFileUploaders } from '/javascripts/components/file-uploader.mjs';
+      document.addEventListener('DOMContentLoaded', initFileUploaders);

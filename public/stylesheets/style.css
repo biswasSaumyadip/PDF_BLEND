@@ -24,9 +24,9 @@ body {
   line-height: 1.5;
 }
 
-
 body {
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell,
+    sans-serif;
   margin: 0;
   padding: 0;
   background-color: #f4f4f4;
@@ -96,4 +96,34 @@ button:hover {
   align-items: center;
   color: white;
   font-size: 18px;
+}
+
+.form-group {
+  margin-bottom: 1rem;
+}
+
+.form-label {
+  display: block;
+  color: #666;
+  font-size: 0.875rem;
+  margin-bottom: 0.375rem;
+}
+
+.form-input {
+  width: 100%;
+  padding: 0.5rem;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 0.875rem;
+  color: #333;
+  background: #fff;
+}
+
+.form-input:focus {
+  outline: none;
+  border-color: #4361ee;
+}
+
+.form-input::placeholder {
+  color: #999;
 }

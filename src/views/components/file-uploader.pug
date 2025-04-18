@@ -3,11 +3,11 @@ mixin file-uploader(options = {})
   .file-uploader(data-uploader)
     .upload-area#dropZone
       .drop-zone-content
-        i.fas.fa-cloud-upload-alt
+        i.fas.fa-cloud-arrow-up
         p.drop-text= description
         p.drop-text-or or
-        button.btn.btn-secondary.browse-btn#browseFiles(type='button')
-          i.fas.fa-folder-open
+        button.browse-btn#browseFiles(type='button')
+          i.fas.fa-folder(style="font-size: 12px;")
           span Browse Files
         input.file-input(
           type='file'

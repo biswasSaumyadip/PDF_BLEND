@@ -107,7 +107,7 @@
 }
 
 .btn.loading::after {
-  content: "";
+  content: '';
   position: absolute;
   width: 1rem;
   height: 1rem;
@@ -118,5 +118,7 @@
 }
 
 @keyframes spin {
-  to { transform: rotate(360deg); }
+  to {
+    transform: rotate(360deg);
+  }
 }

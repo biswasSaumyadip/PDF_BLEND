@@ -58,8 +58,9 @@ export class FileUploader {
 
   setupEventListeners() {
     this.browseBtn.addEventListener('click', (e) => {
-      e.stopPropagation();
-      this.fileInput.click();
+      e.preventDefault(); // Prevent the button's default action
+      e.stopPropagation(); // Stop event propagation
+      this.fileInput.click(); // Trigger the file input click
     });
 
     this.fileInput.addEventListener('change', () => {
