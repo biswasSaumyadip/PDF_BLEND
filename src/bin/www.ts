@@ -12,6 +12,7 @@ dotenv.config();
 import app from '../app';
 import http from 'http';
 import logger from '../utils/logger';
+import { AddressInfo } from 'net';
 
 /**
  * Get port from environment and store in Express
@@ -46,13 +47,13 @@ process.on('SIGTERM', shutdown);
  * Normalize a port into a number, string, or false
  */
 function normalizePort(val: string): number | string | false {
-  const port = parseInt(val, 10);
+  const parsedPort = parseInt(val, 10);
 
-  if (isNaN(port)) {
+  if (isNaN(parsedPort)) {
     return val; // named pipe
   }
-  if (port >= 0) {
-    return port; // valid port number
+  if (parsedPort >= 0) {
+    return parsedPort; // valid port number
   }
   return false;
 }
@@ -70,7 +71,10 @@ function onError(error: NodeJS.ErrnoException): void {
 
   switch (error.code) {
     case 'EACCES':
-      logger.error(`[Startup Error] ${bind} requires elevated privileges`, { port, errorCode: error.code });
+      logger.error(`[Startup Error] ${bind} requires elevated privileges`, {
+        port,
+        errorCode: error.code,
+      });
       process.exit(1);
     case 'EADDRINUSE':
       logger.error(`[Startup Error] ${bind} is already in use`, { port, errorCode: error.code });
@@ -88,8 +92,10 @@ function onListening(): void {
   const addr = server.address();
   const bind = typeof addr === 'string' ? `Pipe ${addr}` : `Port ${addr?.port}`;
 
-  logger.info('[Server] Listening started', {
-    bind,
+  const portNumber = typeof addr === 'string' ? null : addr?.port;
+
+  logger.info(`[Server] Listening started on ${bind}`, {
+    port: portNumber,
     environment: process.env.NODE_ENV || 'development',
     timestamp: new Date().toISOString(),
   });
