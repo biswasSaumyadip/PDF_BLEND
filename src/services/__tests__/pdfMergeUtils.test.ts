@@ -16,14 +16,14 @@ describe('mergePdfs', () => {
 
     const result = await mergePdfs([Buffer.from(pdf1Bytes), Buffer.from(pdf2Bytes)]);
     const resultDoc = await PDFDocument.load(result);
-    
+
     expect(resultDoc.getPageCount()).toBe(3);
   });
 
   it('should handle empty buffers array', async () => {
     const result = await mergePdfs([]);
     const resultDoc = await PDFDocument.load(result);
-    
+
     expect(resultDoc.getPageCount()).toBe(0);
   });
 
@@ -36,12 +36,12 @@ describe('mergePdfs', () => {
     const pdfBytes = await pdf.save();
 
     const removals = {
-      0: [1] // Remove second page (index 1) from first PDF
+      0: [1], // Remove second page (index 1) from first PDF
     };
 
     const result = await mergePdfs([Buffer.from(pdfBytes)], removals);
     const resultDoc = await PDFDocument.load(result);
-    
+
     expect(resultDoc.getPageCount()).toBe(2);
   });
 
@@ -52,12 +52,12 @@ describe('mergePdfs', () => {
     const pdfBytes = await pdf.save();
 
     const removals = {
-      0: [0, 1] // Remove all pages
+      0: [0, 1], // Remove all pages
     };
 
     const result = await mergePdfs([Buffer.from(pdfBytes)], removals);
     const resultDoc = await PDFDocument.load(result);
-    
+
     expect(resultDoc.getPageCount()).toBe(0);
   });
 
@@ -67,12 +67,12 @@ describe('mergePdfs', () => {
     const pdfBytes = await pdf.save();
 
     const removals = {
-      0: [99] // Invalid page index
+      0: [99], // Invalid page index
     };
 
     const result = await mergePdfs([Buffer.from(pdfBytes)], removals);
     const resultDoc = await PDFDocument.load(result);
-    
+
     // Should keep the page since invalid index was specified
     expect(resultDoc.getPageCount()).toBe(1);
   });
@@ -100,16 +100,13 @@ describe('mergePdfs', () => {
     const pdf2Bytes = await pdf2.save();
 
     const removals = {
-      0: [1],  // Remove second page from first PDF
-      1: [0]   // Remove first page from second PDF
+      0: [1], // Remove second page from first PDF
+      1: [0], // Remove first page from second PDF
     };
 
-    const result = await mergePdfs(
-      [Buffer.from(pdf1Bytes), Buffer.from(pdf2Bytes)], 
-      removals
-    );
+    const result = await mergePdfs([Buffer.from(pdf1Bytes), Buffer.from(pdf2Bytes)], removals);
     const resultDoc = await PDFDocument.load(result);
-    
+
     expect(resultDoc.getPageCount()).toBe(2);
   });
 });

@@ -1,9 +1,9 @@
+import AdmZip from 'adm-zip';
 import { Request, Response } from 'express';
 import { PDFDocument } from 'pdf-lib';
 import { PDFService } from '../../services/pdfService';
-import { mergePDFsHandler } from '../mergeController';
 import logger from '../../utils/logger';
-import AdmZip from 'adm-zip';
+import { mergePDFsHandler } from '../mergeController';
 
 // Mock the PDFService and logger
 jest.mock('../../services/pdfService');
@@ -22,15 +22,15 @@ describe('mergePDFsHandler', () => {
     originalConsoleError = console.error;
     // Mock console.error
     console.error = jest.fn();
-    
+
     // Reset mocks
     jest.clearAllMocks();
-    
+
     // Create sample PDF for tests
     const pdfDoc = await PDFDocument.create();
     pdfDoc.addPage();
     const pdfBytes = await pdfDoc.save();
-    
+
     headers = {};
     responseData = null;
     statusCode = 200;
@@ -48,13 +48,13 @@ describe('mergePDFsHandler', () => {
       setHeader: jest.fn((name: string, value: string) => {
         headers[name] = value;
         return mockResponse as Response;
-      })
+      }),
     };
 
     // Mock request object with default values
     mockRequest = {
       body: { filename: 'test.pdf' },
-      files: {}
+      files: {},
     };
 
     // Mock PDFService methods
@@ -70,7 +70,7 @@ describe('mergePDFsHandler', () => {
   it('should merge multiple PDF files in array format', async () => {
     const files = [
       { originalname: '1.pdf', buffer: Buffer.from('pdf1') },
-      { originalname: '2.pdf', buffer: Buffer.from('pdf2') }
+      { originalname: '2.pdf', buffer: Buffer.from('pdf2') },
     ] as Express.Multer.File[];
 
     mockRequest.files = files;
@@ -88,39 +88,35 @@ describe('mergePDFsHandler', () => {
     const files = [
       { originalname: '2.pdf', buffer: Buffer.from('pdf2') },
       { originalname: '1.pdf', buffer: Buffer.from('pdf1') },
-      { originalname: '10.pdf', buffer: Buffer.from('pdf10') }
+      { originalname: '10.pdf', buffer: Buffer.from('pdf10') },
     ] as Express.Multer.File[];
 
     mockRequest.files = files;
 
     await mergePDFsHandler(mockRequest as Request, mockResponse as Response);
 
-    const sortedBuffers = [
-      Buffer.from('pdf1'),
-      Buffer.from('pdf2'),
-      Buffer.from('pdf10')
-    ];
+    const sortedBuffers = [Buffer.from('pdf1'), Buffer.from('pdf2'), Buffer.from('pdf10')];
 
-    expect(PDFService.mergePDFs).toHaveBeenCalledWith(
-      expect.arrayContaining(sortedBuffers)
-    );
+    expect(PDFService.mergePDFs).toHaveBeenCalledWith(expect.arrayContaining(sortedBuffers));
   });
 
   it('should handle ZIP file upload', async () => {
     const zipBuffer = new AdmZip().toBuffer();
     mockRequest.files = {
-      zip: [{
-        fieldname: 'zip',
-        originalname: 'test.zip',
-        encoding: '7bit',
-        mimetype: 'application/zip',
-        buffer: zipBuffer,
-        size: zipBuffer.length,
-        stream: null as any, // Mock stream
-        destination: '',
-        filename: 'test.zip',
-        path: ''
-      }] as Express.Multer.File[]
+      zip: [
+        {
+          fieldname: 'zip',
+          originalname: 'test.zip',
+          encoding: '7bit',
+          mimetype: 'application/zip',
+          buffer: zipBuffer,
+          size: zipBuffer.length,
+          stream: null as any, // Mock stream
+          destination: '',
+          filename: 'test.zip',
+          path: '',
+        },
+      ] as Express.Multer.File[],
     };
 
     await mergePDFsHandler(mockRequest as Request, mockResponse as Response);
@@ -133,8 +129,8 @@ describe('mergePDFsHandler', () => {
     mockRequest.files = {
       pdfs: [
         { buffer: Buffer.from('pdf1') },
-        { buffer: Buffer.from('pdf2') }
-      ] as Express.Multer.File[]
+        { buffer: Buffer.from('pdf2') },
+      ] as Express.Multer.File[],
     };
 
     await mergePDFsHandler(mockRequest as Request, mockResponse as Response);
@@ -181,20 +177,15 @@ describe('mergePDFsHandler', () => {
   it('should handle files with no numeric prefix', async () => {
     const files = [
       { originalname: 'b.pdf', buffer: Buffer.from('pdf2') },
-      { originalname: 'a.pdf', buffer: Buffer.from('pdf1') }
+      { originalname: 'a.pdf', buffer: Buffer.from('pdf1') },
     ] as Express.Multer.File[];
 
     mockRequest.files = files;
 
     await mergePDFsHandler(mockRequest as Request, mockResponse as Response);
 
-    const sortedBuffers = [
-      Buffer.from('pdf1'),
-      Buffer.from('pdf2')
-    ];
+    const sortedBuffers = [Buffer.from('pdf1'), Buffer.from('pdf2')];
 
-    expect(PDFService.mergePDFs).toHaveBeenCalledWith(
-      expect.arrayContaining(sortedBuffers)
-    );
+    expect(PDFService.mergePDFs).toHaveBeenCalledWith(expect.arrayContaining(sortedBuffers));
   });
 });

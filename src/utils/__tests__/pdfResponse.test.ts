@@ -1,6 +1,6 @@
 import { Response } from 'express';
-import { sendPDFResponse } from '../pdfResponse';
 import { PDFDocument } from 'pdf-lib';
+import { sendPDFResponse } from '../pdfResponse';
 
 describe('sendPDFResponse', () => {
   let mockResponse: Partial<Response>;
@@ -18,7 +18,7 @@ describe('sendPDFResponse', () => {
       send: jest.fn((data: Buffer) => {
         sentData = data;
         return mockResponse as Response;
-      })
+      }),
     };
   });
 
