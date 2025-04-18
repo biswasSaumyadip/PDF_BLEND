@@ -40,7 +40,7 @@ export async function mergePdfWithRemovals(
     }
   }
 
-  const finalBytes = await mergedPdf.save();
+  const finalBytes = await mergedPdf.save({ addDefaultPage: false });
   logger.info(`[Merge Complete] Final PDF size: ${finalBytes.length} bytes`);
   return Buffer.from(finalBytes);
 }
