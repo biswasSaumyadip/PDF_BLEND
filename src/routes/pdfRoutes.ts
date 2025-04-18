@@ -1,10 +1,11 @@
 import express, { NextFunction, Request, Response } from 'express';
-import { mergePDFsHandler, PDFService } from '../services/pdfService';
+import { PDFService } from '../services/pdfService';
 import upload from '../middleware/uploadMiddleware';
 import logger from '../utils/logger';
 import { PDFDocument } from 'pdf-lib';
 import { validateMergeUpload } from '../middleware/uploadValidatorMiddleware';
 import { fixLinksHandler, mergeWithPreview } from '../controller/pdfController';
+import { mergePDFsHandler } from '../controller/mergeController';
 
 const router = express.Router();
 
