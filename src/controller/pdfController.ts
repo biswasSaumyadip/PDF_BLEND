@@ -52,10 +52,7 @@ export async function fixLinksHandler(req: Request, res: Response) {
 
     const updatedPdf = await PDFService.fixInternalLinks(file, linksToFix);
 
-    res
-      .setHeader('Content-Disposition', `attachment; filename="${filename}"`)
-      .type('application/pdf')
-      .send(updatedPdf);
+    sendPDFResponse(res, filename, updatedPdf);
   } catch (err: any) {
     logger.error('[fixLinksHandler] Failed', { error: err.message });
     res.status(500).send('Error fixing links');
