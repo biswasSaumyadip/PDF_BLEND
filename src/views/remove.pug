@@ -24,11 +24,11 @@ block pageContent
     .preview-header
       .header-content
         i.fas.fa-file-pdf
-        h2 Preview
+        h2 PDF Preview
         p.header-desc Select pages to remove by clicking on them
 
     .preview-section
-      #previewContainer.preview-container
+      .preview-container#previewContainer
         .preview-placeholder
           i.far.fa-file-pdf
           p.preview-text Upload a PDF to preview and remove pages
@@ -52,6 +52,7 @@ block styles
       width: 100%;
     }
 
+    /* Layout */
     .preview {
       display: flex;
       flex-direction: column;
@@ -88,6 +89,7 @@ block styles
       font-size: 0.9rem;
     }
 
+    /* Preview Section */
     .preview-section {
       flex: 1;
       background: var(--sidebar-bg);
@@ -128,17 +130,25 @@ block styles
       color: var(--primary);
     }
 
+    /* PDF Page Cards */
     .pdf-page {
+      position: relative;
       background: var(--sidebar-bg);
-      padding: 0.75rem;
       border-radius: var(--radius);
-      box-shadow: var(--shadow);
-      text-align: center;
+      padding: 0.75rem;
       transition: all 0.2s ease;
+      cursor: pointer;
+      border: 2px solid transparent;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+    }
+
+    .pdf-page:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 8px rgba(0,0,0,0.1);
     }
 
     .pdf-page.selected {
-      border: 2px solid var(--primary);
+      border-color: var(--primary);
       background: var(--active);
     }
 
@@ -146,6 +156,76 @@ block styles
       width: 100%;
       height: auto;
       border-radius: calc(var(--radius) - 2px);
+    }
+
+    .pdf-page .page-number {
+      position: absolute;
+      top: 0.5rem;
+      right: 0.5rem;
+      background: rgba(0, 0, 0, 0.7);
+      color: white;
+      padding: 0.25rem 0.5rem;
+      border-radius: calc(var(--radius) / 2);
+      font-size: 0.75rem;
+      pointer-events: none;
+    }
+
+    .pdf-page .remove-toggle {
+      position: absolute;
+      bottom: 0.5rem;
+      left: 50%;
+      transform: translateX(-50%);
+      background: var(--hover);
+      padding: 0.4rem 0.75rem;
+      border-radius: var(--radius);
+      font-size: 0.8rem;
+      color: var(--light-text);
+      border: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      opacity: 0.8;
+      transition: all 0.2s ease;
+    }
+
+    .pdf-page:hover .remove-toggle {
+      opacity: 1;
+    }
+
+    .pdf-page.selected .remove-toggle {
+      background: var(--primary);
+      color: white;
+      border-color: var(--primary);
+    }
+
+    /* Responsive */
+    @media (max-width: 1200px) {
+      .preview-container {
+        grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+      }
+    }
+
+    @media (max-width: 768px) {
+      .preview {
+        padding: 0.75rem;
+      }
+
+      .preview-header {
+        padding: 0.75rem;
+      }
+
+      .preview-section {
+        padding: 0.75rem;
+      }
+
+      .preview-container {
+        grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+        gap: 0.75rem;
+      }
+
+      .pdf-page {
+        padding: 0.5rem;
+      }
     }
 
 block scripts
