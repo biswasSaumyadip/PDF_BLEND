@@ -18,21 +18,31 @@ export class PDFService {
     logger.info(`[PDFService] Merging ${pdfs.length} PDFs`);
 
     const mergedPdf = await PDFDocument.create();
+    let totalPages = 0;
+
+    // If no PDFs provided, return empty document
+    if (pdfs.length === 0) {
+      const emptyBytes = await mergedPdf.save({ addDefaultPage: false });
+      return Buffer.from(emptyBytes);
+    }
 
     for (const pdf of pdfs) {
-      // Convert Buffer to Uint8Array
       try {
         const uint8ArrayPdf = new Uint8Array(pdf);
         const pdfDoc = await PDFDocument.load(uint8ArrayPdf);
-        const copiedPages = await mergedPdf.copyPages(pdfDoc, pdfDoc.getPageIndices());
-        copiedPages.forEach((page) => mergedPdf.addPage(page));
+        const pageIndices = pdfDoc.getPageIndices();
+        if (pageIndices.length > 0) {
+          const copiedPages = await mergedPdf.copyPages(pdfDoc, pageIndices);
+          copiedPages.forEach((page) => mergedPdf.addPage(page));
+          totalPages += copiedPages.length;
+        }
       } catch (error) {
         logger.error(`[PDFService] Error processing a PDF file`, { error });
       }
     }
 
-    const mergedPdfBytes = await mergedPdf.save();
-    logger.info(`[PDFService] Successfully merged PDFs`);
+    const mergedPdfBytes = await mergedPdf.save({ addDefaultPage: false });
+    logger.info(`[PDFService] Successfully merged PDFs with ${totalPages} total pages`);
     return Buffer.from(mergedPdfBytes);
   }
 
@@ -43,9 +53,12 @@ export class PDFService {
     const pdfBuffers: Buffer[] = [];
 
     zip.getEntries().forEach((entry) => {
-      if (entry.entryName.endsWith('.pdf')) {
+      if (entry.entryName.toLowerCase().endsWith('.pdf')) {
         logger.info(`[PDFService] Found PDF in ZIP: ${entry.entryName}`);
-        pdfBuffers.push(entry.getData());
+        const buffer = entry.getData();
+        if (buffer.length > 0) {
+          pdfBuffers.push(buffer);
+        }
       }
     });
 
@@ -54,50 +67,61 @@ export class PDFService {
   }
 
   static async removePages(pdfBuffer: Buffer, pagesToRemove: number[]): Promise<Buffer> {
-    // Explicit conversion for compatibility
     const uint8Array = new Uint8Array(pdfBuffer);
-
     const pdfDoc = await PDFDocument.load(uint8Array);
     const totalPages = pdfDoc.getPageCount();
 
-    const pagesToKeep = Array.from({ length: totalPages }, (_, i) => i).filter(
-      (i) => !pagesToRemove.includes(i)
-    );
+    // Filter out invalid page indices
+    const validPagesToRemove = pagesToRemove.filter(i => i >= 0 && i < totalPages);
+
+    const pagesToKeep = Array.from({ length: totalPages }, (_, i) => i)
+      .filter(i => !validPagesToRemove.includes(i));
 
     const newPdf = await PDFDocument.create();
-    const copiedPages = await newPdf.copyPages(pdfDoc, pagesToKeep);
-    copiedPages.forEach((page) => newPdf.addPage(page));
+    if (pagesToKeep.length > 0) {
+      const copiedPages = await newPdf.copyPages(pdfDoc, pagesToKeep);
+      copiedPages.forEach(page => newPdf.addPage(page));
+    }
 
-    const pdfBytes = await newPdf.save();
+    const pdfBytes = await newPdf.save({ addDefaultPage: false });
     return Buffer.from(pdfBytes);
   }
 
   static async mergeAndRemovePages(buffers: Buffer[], pagesToRemove: number[]): Promise<Buffer> {
-    const mergedPdf = await PDFDocument.create();
-    let pageOffset = 0;
-
-    for (const buffer of buffers) {
-      const pdfDoc = await PDFDocument.load(new Uint8Array(buffer));
-      const totalPages = pdfDoc.getPageCount();
-      logger.info(`[mergeAndRemovePages] Processing PDF with ${totalPages} pages`);
-
-      const keepPages = Array.from({ length: totalPages }, (_, i) => i).filter(
-        (i) => !pagesToRemove.includes(i + pageOffset)
-      );
-
-      logger.info(`[mergeAndRemovePages] Keeping pages:`, keepPages);
-
-      const copied = await mergedPdf.copyPages(
-        pdfDoc,
-        keepPages.map((i) => i)
-      );
-      copied.forEach((page) => mergedPdf.addPage(page));
-
-      pageOffset += totalPages;
+    // If no buffers provided, return empty document
+    if (buffers.length === 0) {
+      const emptyDoc = await PDFDocument.create();
+      const emptyBytes = await emptyDoc.save({ addDefaultPage: false });
+      return Buffer.from(emptyBytes);
     }
 
-    const finalBytes = await mergedPdf.save();
-    logger.info(`[mergeAndRemovePages] Final merged PDF saved.`);
+    const mergedPdf = await PDFDocument.create();
+    let pageOffset = 0;
+    let totalPages = 0;
+
+    for (const buffer of buffers) {
+      try {
+        const pdfDoc = await PDFDocument.load(new Uint8Array(buffer));
+        const currentPages = pdfDoc.getPageCount();
+        logger.info(`[mergeAndRemovePages] Processing PDF with ${currentPages} pages`);
+
+        const keepPages = Array.from({ length: currentPages }, (_, i) => i)
+          .filter(i => !pagesToRemove.includes(i + pageOffset));
+
+        if (keepPages.length > 0) {
+          const copied = await mergedPdf.copyPages(pdfDoc, keepPages);
+          copied.forEach(page => mergedPdf.addPage(page));
+          totalPages += copied.length;
+        }
+
+        pageOffset += currentPages;
+      } catch (error) {
+        logger.error(`[mergeAndRemovePages] Error processing PDF`, { error });
+      }
+    }
+
+    const finalBytes = await mergedPdf.save({ addDefaultPage: false });
+    logger.info(`[mergeAndRemovePages] Final merged PDF saved with ${totalPages} pages`);
     return Buffer.from(finalBytes);
   }
 
