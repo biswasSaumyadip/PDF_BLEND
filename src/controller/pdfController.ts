@@ -3,12 +3,13 @@ import { mergePdfWithRemovals } from '../services/pdfMergeService';
 import logger from '../utils/logger';
 import { PDFService } from '../services/pdfService';
 import { sendPDFResponse } from '../utils/pdfResponse';
+import { LinkPageMap } from '../types/types';
 
 export const mergeWithPreview = async (req: Request, res: Response) => {
   try {
     const files = (req.files as { [fieldname: string]: Express.Multer.File[] })['files'] || [];
     const filename = req.body.filename || 'MergedPreview.pdf';
-    let pagesToRemoveMap = {};
+    let pagesToRemoveMap: { [filename: string]: number[] } = {};
 
     try {
       pagesToRemoveMap = JSON.parse(req.body.pagesToRemove || '{}');
@@ -45,7 +46,7 @@ export const mergeWithPreview = async (req: Request, res: Response) => {
 export async function fixLinksHandler(req: Request, res: Response) {
   try {
     const file = (req.file as Express.Multer.File).buffer;
-    const linksToFix = JSON.parse(req.body.linksToFix);
+    const linksToFix: LinkPageMap = JSON.parse(req.body.linksToFix);
     const filename = req.body.filename || 'fixed.pdf';
 
     logger.info('[fixLinksHandler] Fixing links', { pages: Object.keys(linksToFix) });
