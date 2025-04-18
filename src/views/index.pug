@@ -5,65 +5,201 @@ block sidebarForm
 
 block pageContent
   .home-content
-    h1 PDF Blend 🧩
-    p.tagline A simple web tool to merge PDFs — with or without removing pages visually.
+    .hero-section
+      .hero-text
+        h1.hero-title PDF Blend 
+          span.emoji 🧩
+        p.hero-tagline Simplify your PDF workflow with our powerful tools
 
-    .card
-      h2 Choose an Action:
-      ul.link-list
-        li
-          a(href='/merge') ➕ Merge PDFs (Standard)
-        li
-          a(href='/merge-with-preview') ✂️ Merge PDFs with Visual Page Removal
-        li
-          a(href='/remove') 🧼 Remove Pages from a Single PDF
+    .features-grid
+      .feature-card
+        i.fas.fa-object-group.feature-icon
+        h3 Merge PDFs
+        p Combine multiple PDF files into a single document
+        a.feature-button(href='/merge') Get Started
 
-      p.note You can upload multiple PDF files or even a ZIP archive, and optionally remove pages before combining.
-      
+      .feature-card
+        i.fas.fa-cut.feature-icon
+        h3 Visual Merge
+        p Merge PDFs with visual page preview and removal
+        a.feature-button(href='/merge-with-preview') Try Now
+
+      .feature-card
+        i.fas.fa-trash-alt.feature-icon
+        h3 Remove Pages
+        p Remove specific pages from your PDF files
+        a.feature-button(href='/remove') Clean Up
+
+    .info-section
+      .info-card
+        i.fas.fa-info-circle.info-icon
+        .info-content
+          h4 Supported Features
+          ul.feature-list
+            li
+              i.fas.fa-check
+              span Upload multiple PDFs or ZIP archives
+            li
+              i.fas.fa-check
+              span Visual page preview and selection
+            li
+              i.fas.fa-check
+              span Efficient page removal
+            li
+              i.fas.fa-check
+              span Preserve PDF quality
+
 block styles
   style.
     .home-content {
-      padding: 40px 50px;
+      padding: 40px;
+      max-width: 1200px;
+      margin: 0 auto;
     }
 
-    .card {
-      background: #ffffff;
-      padding: 30px 40px;
-      border-radius: 12px;
-      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
-      max-width: 600px;
+    .hero-section {
+      text-align: center;
+      margin-bottom: 60px;
+      padding: 40px 20px;
+      background: linear-gradient(135deg, var(--sidebar-bg) 0%, var(--active) 100%);
+      border-radius: 20px;
+      box-shadow: var(--shadow);
     }
 
-    .tagline {
-      font-size: 16px;
-      color: #666;
-      margin-bottom: 24px;
+    .hero-title {
+      font-size: 3rem;
+      color: var(--primary);
+      margin-bottom: 20px;
+      font-weight: 700;
     }
 
-    ul.link-list {
+    .hero-tagline {
+      font-size: 1.5rem;
+      color: var(--light-text);
+      margin-bottom: 30px;
+    }
+
+    .emoji {
+      font-size: 3.5rem;
+      vertical-align: middle;
+    }
+
+    .features-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 30px;
+      margin-bottom: 40px;
+    }
+
+    .feature-card {
+      background: var(--sidebar-bg);
+      padding: 30px;
+      border-radius: 15px;
+      box-shadow: var(--shadow);
+      text-align: center;
+      transition: transform 0.3s ease;
+    }
+
+    .feature-card:hover {
+      transform: translateY(-5px);
+    }
+
+    .feature-icon {
+      font-size: 2.5rem;
+      color: var(--primary);
+      margin-bottom: 20px;
+    }
+
+    .feature-card h3 {
+      font-size: 1.5rem;
+      color: var(--text);
+      margin-bottom: 15px;
+    }
+
+    .feature-card p {
+      color: var(--light-text);
+      margin-bottom: 20px;
+    }
+
+    .feature-button {
+      display: inline-block;
+      padding: 10px 20px;
+      background-color: var(--primary);
+      color: white;
+      text-decoration: none;
+      border-radius: var(--radius);
+      transition: background-color 0.3s ease;
+    }
+
+    .feature-button:hover {
+      background-color: #3451d1;
+    }
+
+    .info-section {
+      margin-top: 40px;
+    }
+
+    .info-card {
+      background: var(--sidebar-bg);
+      padding: 30px;
+      border-radius: 15px;
+      box-shadow: var(--shadow);
+      display: flex;
+      align-items: flex-start;
+      gap: 20px;
+    }
+
+    .info-icon {
+      font-size: 2rem;
+      color: var(--primary);
+    }
+
+    .info-content {
+      flex: 1;
+    }
+
+    .info-content h4 {
+      font-size: 1.2rem;
+      color: var(--text);
+      margin-bottom: 15px;
+    }
+
+    .feature-list {
       list-style: none;
       padding: 0;
-      margin: 0 0 20px;
     }
 
-    ul.link-list li {
-      margin: 14px 0;
+    .feature-list li {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 10px;
+      color: var(--light-text);
     }
 
-    ul.link-list a {
-      text-decoration: none;
-      font-size: 16px;
-      color: #007bff;
-      font-weight: 500;
-      transition: all 0.2s ease-in-out;
+    .feature-list i {
+      color: #2ecc71;
     }
 
-    ul.link-list a:hover {
-      color: #0056b3;
-      text-decoration: underline;
-    }
+    @media (max-width: 768px) {
+      .home-content {
+        padding: 20px;
+      }
 
-    .note {
-      font-size: 14px;
-      color: #888;
+      .hero-title {
+        font-size: 2.5rem;
+      }
+
+      .hero-tagline {
+        font-size: 1.2rem;
+      }
+
+      .features-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .info-card {
+        flex-direction: column;
+        text-align: center;
+      }
     }
