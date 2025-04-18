@@ -320,7 +320,9 @@ export class PDFService {
           return this.destinationPointsToTarget(pdfDoc, destObj, targetPageIndex, pages);
         }
       } catch (error) {
-        logger.warn('[PDFService] Failed to lookup destination reference');
+        logger.warn('[PDFService] Failed to lookup destination reference', {
+          destinationRef: dest?.toString?.() || 'unknown',
+        });
       }
     }
     // Handle named destinations

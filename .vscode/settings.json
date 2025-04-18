@@ -19,6 +19,7 @@
   "typescript.updateImportsOnFileMove.enabled": "always",
   "editor.rulers": [100],
   "editor.codeActionsOnSave": {
-    "source.fixAll.eslint": "explicit"
+    "source.fixAll.eslint": "explicit",
+    "source.organizeImports": "always"
   }
 }
