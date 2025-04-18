@@ -1,105 +1,107 @@
 #!/usr/bin/env node
 
 /**
- * Module dependencies.
+ * Load environment variables early
  */
-
-import app from '../app';
-import http from 'http';
-import logger from '../utils/logger';
-
 import dotenv from 'dotenv';
 dotenv.config();
 
 /**
- * Get port from environment and store in Express.
+ * Module dependencies
  */
+import app from '../app';
+import http from 'http';
+import logger from '../utils/logger';
 
+/**
+ * Get port from environment and store in Express
+ */
 const port = normalizePort(process.env.PORT || '3000');
 app.set('port', port);
 
 /**
- * Create HTTP server.
+ * Create HTTP server
  */
-
 const server = http.createServer(app);
 
 /**
- * Listen on provided port, on all network interfaces.
+ * Listen on provided port, on all network interfaces
  */
-
 server.listen(port);
 server.on('error', onError);
 server.on('listening', onListening);
 
 /**
- * Normalize a port into a number, string, or false.
+ * Global process event handlers
  */
+process.on('unhandledRejection', (reason) => {
+  logger.error('[Process] Unhandled Promise Rejection', { reason });
+  process.exit(1);
+});
 
+process.on('SIGINT', shutdown);
+process.on('SIGTERM', shutdown);
+
+/**
+ * Normalize a port into a number, string, or false
+ */
 function normalizePort(val: string): number | string | false {
   const port = parseInt(val, 10);
 
   if (isNaN(port)) {
-    // named pipe
-    return val;
+    return val; // named pipe
   }
-
   if (port >= 0) {
-    // port number
-    return port;
+    return port; // valid port number
   }
-
   return false;
 }
 
 /**
- * Event listener for HTTP server "error" event.
+ * Event listener for HTTP server "error" event
  */
-
-function onError(error: any): void {
+function onError(error: NodeJS.ErrnoException): void {
   if (error.syscall !== 'listen') {
-    logger.error(`Unexpected server error: ${error.message}`, { error });
+    logger.error('[Server] Unexpected server error', { message: error.message, error });
     throw error;
   }
 
-  const bind = typeof port === 'string' ? 'Pipe ' + port : 'Port ' + port;
+  const bind = typeof port === 'string' ? `Pipe ${port}` : `Port ${port}`;
 
-  // handle specific listen errors with friendly messages
   switch (error.code) {
     case 'EACCES':
-      logger.error(`[Startup Error] ${bind} requires elevated privileges`, {
-        port,
-        errorCode: error.code,
-      });
+      logger.error(`[Startup Error] ${bind} requires elevated privileges`, { port, errorCode: error.code });
       process.exit(1);
-      break;
     case 'EADDRINUSE':
-      logger.error(`[Startup Error] ${bind} is already in use`, {
-        port,
-        errorCode: error.code,
-      });
+      logger.error(`[Startup Error] ${bind} is already in use`, { port, errorCode: error.code });
       process.exit(1);
-      break;
     default:
-      logger.error(`[Startup Error] Unknown error occurred on ${bind}`, {
-        port,
-        error,
-      });
+      logger.error(`[Startup Error] Unknown error occurred on ${bind}`, { port, error });
       throw error;
   }
 }
 
 /**
- * Event listener for HTTP server "listening" event.
+ * Event listener for HTTP server "listening" event
  */
-
 function onListening(): void {
   const addr = server.address();
   const bind = typeof addr === 'string' ? `Pipe ${addr}` : `Port ${addr?.port}`;
 
-  logger.info(`[Server] Listening on ${bind}`, {
-    port: typeof addr !== 'string' ? addr?.port : port,
+  logger.info('[Server] Listening started', {
+    bind,
     environment: process.env.NODE_ENV || 'development',
     timestamp: new Date().toISOString(),
+  });
+}
+
+/**
+ * Graceful shutdown handler
+ */
+function shutdown(): void {
+  logger.info('[Server] Shutting down gracefully...');
+  server.close(() => {
+    logger.info('[Server] Shutdown complete.');
+    process.exit(0);
   });
 }
