@@ -27,5 +27,5 @@ export async function mergePdfs(buffers: Buffer[], removals: RemovalMap = {}): P
     copied.forEach((page) => outDoc.addPage(page));
   }
 
-  return outDoc.save();
+  return outDoc.save({ addDefaultPage: false });
 }
