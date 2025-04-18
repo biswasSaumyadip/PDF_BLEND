@@ -7,6 +7,7 @@ import {
   PDFNumber,
   PDFString,
   PDFPage,
+  PDFObject,
 } from 'pdf-lib';
 import { Request, Response } from 'express';
 import AdmZip from 'adm-zip';
@@ -266,13 +267,7 @@ export class PDFService {
   ): boolean {
     // Check direct Dest
     const dest = annot.get(PDFName.of('Dest'));
-    if (
-      dest &&
-      (dest instanceof PDFArray ||
-        dest instanceof PDFRef ||
-        dest instanceof PDFName ||
-        dest instanceof PDFString)
-    ) {
+    if (dest && this.isValidDestinationObject(dest)) {
       return this.destinationPointsToTarget(pdfDoc, dest, targetPageIndex, pages);
     }
 
@@ -282,13 +277,7 @@ export class PDFService {
       const actionType = action.get(PDFName.of('S'));
       if (actionType instanceof PDFName && actionType.asString() === 'GoTo') {
         const actionDest = action.get(PDFName.of('D'));
-        if (
-          actionDest &&
-          (actionDest instanceof PDFArray ||
-            actionDest instanceof PDFRef ||
-            actionDest instanceof PDFName ||
-            actionDest instanceof PDFString)
-        ) {
+        if (actionDest && this.isValidDestinationObject(actionDest)) {
           return this.destinationPointsToTarget(pdfDoc, actionDest, targetPageIndex, pages);
         }
       }
@@ -363,13 +352,7 @@ export class PDFService {
 
     // Update direct Dest if it exists
     const dest = annot.get(PDFName.of('Dest'));
-    if (
-      dest &&
-      (dest instanceof PDFArray ||
-        dest instanceof PDFRef ||
-        dest instanceof PDFName ||
-        dest instanceof PDFString)
-    ) {
+    if (dest && this.isValidDestinationObject(dest)) {
       this.updateDestinationTarget(pdfDoc, dest, newPageRef);
       return;
     }
@@ -401,26 +384,57 @@ export class PDFService {
     dest: PDFArray | PDFRef | PDFName | PDFString,
     newPageRef: PDFRef
   ): void {
-    // Handle direct array destination
-    if (dest instanceof PDFArray && dest.size() > 0) {
-      // Replace first element with new page reference
-      dest.set(0, newPageRef);
+    if (dest instanceof PDFArray) {
+      if (dest.size() > 0) {
+        dest.set(0, newPageRef);
+        logger.debug('[PDFService] Updated destination array with new page reference');
+      } else {
+        logger.warn('[PDFService] Destination array is empty, cannot update');
+      }
+      return;
     }
-    // Handle reference to a destination array
-    else if (dest instanceof PDFRef) {
+
+    if (dest instanceof PDFRef) {
       try {
         const destObj = pdfDoc.context.lookup(dest);
         if (destObj instanceof PDFArray && destObj.size() > 0) {
           destObj.set(0, newPageRef);
+          logger.debug('[PDFService] Updated referenced destination array with new page reference');
+        } else {
+          logger.warn(
+            '[PDFService] Referenced destination object is not a valid array or is empty'
+          );
         }
       } catch (error) {
-        logger.warn('[PDFService] Failed to lookup destination reference for update');
+        logger.warn('[PDFService] Failed to lookup destination reference for update', {
+          error: error instanceof Error ? error.message : String(error),
+        });
       }
+      return;
     }
-    // Handle named destinations (would need to update the actual destination this name points to)
-    else if (dest instanceof PDFString || dest instanceof PDFName) {
-      logger.warn('[PDFService] Named destinations not supported for updating');
+
+    if (dest instanceof PDFName || dest instanceof PDFString) {
+      logger.warn('[PDFService] Named destinations not supported for updating', {
+        destination: dest.toString(),
+      });
+      return;
     }
+
+    // Defensive programming: should never reach here
+    logger.error('[PDFService] Unexpected destination type encountered', {
+      destinationType: typeof dest,
+    });
+  }
+
+  private static isValidDestinationObject(
+    dest: PDFObject
+  ): dest is PDFArray | PDFRef | PDFName | PDFString {
+    return (
+      dest instanceof PDFArray ||
+      dest instanceof PDFRef ||
+      dest instanceof PDFName ||
+      dest instanceof PDFString
+    );
   }
 }
 
