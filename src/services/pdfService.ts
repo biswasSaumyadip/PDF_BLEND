@@ -1,16 +1,17 @@
-import { PDFDocument, PDFName, PDFArray, PDFDict, PDFRef, PDFNumber, PDFString } from 'pdf-lib';
+import {
+  PDFDocument,
+  PDFName,
+  PDFArray,
+  PDFDict,
+  PDFRef,
+  PDFNumber,
+  PDFString,
+  PDFPage,
+} from 'pdf-lib';
 import { Request, Response } from 'express';
 import AdmZip from 'adm-zip';
 import logger from '../utils/logger';
-
-interface LinkUpdate {
-  oldTarget: number;
-  newTarget: number;
-}
-
-interface LinkPageMap {
-  [pageIndex: string]: LinkUpdate[];
-}
+import { LinkPageMap } from '../types/types';
 
 export class PDFService {
   static async mergePDFs(pdfs: Buffer[]): Promise<Buffer> {
@@ -203,11 +204,11 @@ export class PDFService {
    */
   private static createOrUpdateLinkAnnotation(
     pdfDoc: PDFDocument,
-    page: any,
+    page: PDFPage,
     annotations: PDFArray,
     oldTarget: number,
     newTarget: number,
-    pages: any[]
+    pages: PDFPage[]
   ): void {
     // First, try to find existing link annotations pointing to oldTarget
     let foundExistingLink = false;
@@ -261,11 +262,17 @@ export class PDFService {
     pdfDoc: PDFDocument,
     annot: PDFDict,
     targetPageIndex: number,
-    pages: any[]
+    pages: PDFPage[]
   ): boolean {
     // Check direct Dest
     const dest = annot.get(PDFName.of('Dest'));
-    if (dest) {
+    if (
+      dest &&
+      (dest instanceof PDFArray ||
+        dest instanceof PDFRef ||
+        dest instanceof PDFName ||
+        dest instanceof PDFString)
+    ) {
       return this.destinationPointsToTarget(pdfDoc, dest, targetPageIndex, pages);
     }
 
@@ -275,7 +282,13 @@ export class PDFService {
       const actionType = action.get(PDFName.of('S'));
       if (actionType instanceof PDFName && actionType.asString() === 'GoTo') {
         const actionDest = action.get(PDFName.of('D'));
-        if (actionDest) {
+        if (
+          actionDest &&
+          (actionDest instanceof PDFArray ||
+            actionDest instanceof PDFRef ||
+            actionDest instanceof PDFName ||
+            actionDest instanceof PDFString)
+        ) {
           return this.destinationPointsToTarget(pdfDoc, actionDest, targetPageIndex, pages);
         }
       }
@@ -289,9 +302,9 @@ export class PDFService {
    */
   private static destinationPointsToTarget(
     pdfDoc: PDFDocument,
-    dest: any,
+    dest: PDFArray | PDFRef | PDFName | PDFString,
     targetPageIndex: number,
-    pages: any[]
+    pages: PDFPage[]
   ): boolean {
     // Handle direct array destination
     if (dest instanceof PDFArray && dest.size() > 0) {
@@ -339,7 +352,7 @@ export class PDFService {
     pdfDoc: PDFDocument,
     annot: PDFDict,
     newTargetIndex: number,
-    pages: any[]
+    pages: PDFPage[]
   ): void {
     if (newTargetIndex < 0 || newTargetIndex >= pages.length) {
       logger.warn('[PDFService] New target page index out of range', { newTargetIndex });
@@ -350,7 +363,13 @@ export class PDFService {
 
     // Update direct Dest if it exists
     const dest = annot.get(PDFName.of('Dest'));
-    if (dest) {
+    if (
+      dest &&
+      (dest instanceof PDFArray ||
+        dest instanceof PDFRef ||
+        dest instanceof PDFName ||
+        dest instanceof PDFString)
+    ) {
       this.updateDestinationTarget(pdfDoc, dest, newPageRef);
       return;
     }
@@ -361,38 +380,27 @@ export class PDFService {
       const actionType = action.get(PDFName.of('S'));
       if (actionType instanceof PDFName && actionType.asString() === 'GoTo') {
         const actionDest = action.get(PDFName.of('D'));
-        if (actionDest) {
+        if (
+          actionDest &&
+          (actionDest instanceof PDFArray ||
+            actionDest instanceof PDFRef ||
+            actionDest instanceof PDFName ||
+            actionDest instanceof PDFString)
+        ) {
           this.updateDestinationTarget(pdfDoc, actionDest, newPageRef);
           return;
         }
       }
     }
-
-    // If we get here, we need to create a new destination
-    logger.info('[PDFService] Creating new destination for link');
-
-    // Create default destination to top of page with "Fit" view
-    const newDest = pdfDoc.context.obj([newPageRef, PDFName.of('Fit')]);
-
-    // Set destination directly if there's no action
-    if (!action) {
-      annot.set(PDFName.of('Dest'), newDest);
-    } else {
-      // Or create/update GoTo action
-      const goToAction = pdfDoc.context.obj({
-        Type: PDFName.of('Action'),
-        S: PDFName.of('GoTo'),
-        D: newDest,
-      });
-
-      annot.set(PDFName.of('A'), goToAction);
-    }
   }
-
   /**
    * Updates the target page in a destination
    */
-  private static updateDestinationTarget(pdfDoc: PDFDocument, dest: any, newPageRef: PDFRef): void {
+  private static updateDestinationTarget(
+    pdfDoc: PDFDocument,
+    dest: PDFArray | PDFRef | PDFName | PDFString,
+    newPageRef: PDFRef
+  ): void {
     // Handle direct array destination
     if (dest instanceof PDFArray && dest.size() > 0) {
       // Replace first element with new page reference
