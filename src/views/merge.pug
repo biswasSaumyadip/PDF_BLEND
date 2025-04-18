@@ -29,10 +29,6 @@ block sidebarForm
       button.action-button(type='submit')
         i.fas.fa-object-group
         span Merge PDFs
-      
-      #loader.loader(style='display: none;')
-        .loader-spinner
-        p Processing...
 
 block pageContent
   .content-card
@@ -75,7 +71,6 @@ block styles
       background: var(--content-bg);
       line-height: 1.5;
     }
-    
 
     .form-group {
       margin-bottom: 1rem;
@@ -174,28 +169,6 @@ block styles
     
     .action-button i {
       margin-right: 0.5rem;
-    }
-    
-    .loader {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      margin-top: 1rem;
-    }
-    
-    .loader-spinner {
-      border: 3px solid rgba(0,0,0,0.1);
-      border-radius: 50%;
-      border-top: 3px solid var(--primary);
-      width: 20px;
-      height: 20px;
-      animation: spin 1s linear infinite;
-      margin-bottom: 0.5rem;
-    }
-    
-    @keyframes spin {
-      0% { transform: rotate(0deg); }
-      100% { transform: rotate(360deg); }
     }
     
     /* Content Styles */

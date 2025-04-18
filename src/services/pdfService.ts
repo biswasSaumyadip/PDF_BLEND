@@ -1,7 +1,16 @@
-import { PDFDocument, PDFName, PDFArray, PDFDict, PDFRef } from 'pdf-lib';
+import { PDFDocument, PDFName, PDFArray, PDFDict, PDFRef, PDFNumber, PDFString } from 'pdf-lib';
 import { Request, Response } from 'express';
 import AdmZip from 'adm-zip';
 import logger from '../utils/logger';
+
+interface LinkUpdate {
+  oldTarget: number;
+  newTarget: number;
+}
+
+interface LinkPageMap {
+  [pageIndex: string]: LinkUpdate[];
+}
 
 export class PDFService {
   static async mergePDFs(pdfs: Buffer[]): Promise<Buffer> {
@@ -62,7 +71,6 @@ export class PDFService {
     return Buffer.from(pdfBytes);
   }
 
-
   static async mergeAndRemovePages(buffers: Buffer[], pagesToRemove: number[]): Promise<Buffer> {
     const mergedPdf = await PDFDocument.create();
     let pageOffset = 0;
@@ -92,54 +100,319 @@ export class PDFService {
     return Buffer.from(finalBytes);
   }
 
-  static async fixInternalLinks(buffer: Buffer, linksToFix: Record<number, { oldTarget: number; newTarget: number }[]>): Promise<Buffer> {
-    const pdfDoc = await PDFDocument.load(new Uint8Array(buffer));
-    const pages = pdfDoc.getPages();
-    logger.info(`[fixInternalLinks] Loaded PDF with ${pages.length} pages`);
+  /**
+   * Fixes internal links in a PDF document based on user-provided mapping
+   * @param fileBuffer The original PDF file as a buffer
+   * @param linksToFix Mapping of page links to update: { pageIndex: [{ oldTarget, newTarget }] }
+   * @returns Buffer containing the modified PDF
+   */
+  static async fixInternalLinks(fileBuffer: Buffer, linksToFix: LinkPageMap): Promise<Buffer> {
+    try {
+      logger.info('[PDFService] Starting to modify link destinations');
 
-    for (const [pageIndexStr, linkUpdates] of Object.entries(linksToFix)) {
-      const pageIndex = parseInt(pageIndexStr);
-      const page = pages[pageIndex];
-      const annotsRef = page.node.get(PDFName.of('Annots'));
+      // Load the PDF document with preservation of existing structure
+      const pdfDoc = await PDFDocument.load(new Uint8Array(fileBuffer), {
+        ignoreEncryption: true,
+        updateMetadata: false,
+      });
 
-      if (!annotsRef) continue;
+      const pages = pdfDoc.getPages();
 
-      const annots = pdfDoc.context.lookup(annotsRef);
-      if (!annots || !(annots instanceof PDFArray)) continue;
+      // Process each page that has links to fix
+      for (const [pageIndex, links] of Object.entries(linksToFix)) {
+        const pageIdx = parseInt(pageIndex, 10);
 
-      for (let i = 0; i < annots.size(); i++) {
-        const annotRef = annots.get(i);
+        if (isNaN(pageIdx) || pageIdx < 0 || pageIdx >= pages.length) {
+          logger.warn('[PDFService] Invalid page index', { pageIndex });
+          continue;
+        }
+
+        // Get the page
+        const page = pages[pageIdx];
+        const pageDict = page.node;
+
+        // Check for annotations and create if not exist
+        let annotsRef = pageDict.get(PDFName.of('Annots'));
+        let annotations: PDFArray;
+
+        if (!annotsRef) {
+          logger.info('[PDFService] Creating new Annots array for page', { pageIndex });
+          annotations = pdfDoc.context.obj([]);
+          pageDict.set(PDFName.of('Annots'), annotations);
+        } else {
+          try {
+            const lookupResult = pdfDoc.context.lookup(annotsRef);
+            if (!(lookupResult instanceof PDFArray)) {
+              logger.warn('[PDFService] Annotations not an array, creating new one', { pageIndex });
+              annotations = pdfDoc.context.obj([]);
+              pageDict.set(PDFName.of('Annots'), annotations);
+            } else {
+              annotations = lookupResult;
+            }
+          } catch (error) {
+            logger.error('[PDFService] Failed to lookup annotations', {
+              pageIndex,
+              error: error instanceof Error ? error.message : String(error),
+            });
+            annotations = pdfDoc.context.obj([]);
+            pageDict.set(PDFName.of('Annots'), annotations);
+          }
+        }
+
+        // Process each link update request
+        for (const linkData of links) {
+          try {
+            this.createOrUpdateLinkAnnotation(
+              pdfDoc,
+              page,
+              annotations,
+              linkData.oldTarget,
+              linkData.newTarget,
+              pages
+            );
+          } catch (error) {
+            logger.warn('[PDFService] Failed to update link', {
+              oldTarget: linkData.oldTarget,
+              newTarget: linkData.newTarget,
+              error: error instanceof Error ? error.message : String(error),
+            });
+          }
+        }
+      }
+
+      logger.info('[PDFService] Finished modifying link destinations');
+
+      // Save the modified PDF with options to preserve interactive elements
+      const modifiedPdfBytes = await pdfDoc.save({
+        addDefaultPage: false,
+        useObjectStreams: false,
+      });
+
+      return Buffer.from(modifiedPdfBytes);
+    } catch (error: any) {
+      logger.error('[PDFService] Error modifying links', {
+        error: error.message,
+        stack: error.stack,
+      });
+      throw new Error(`Failed to modify links: ${error.message}`);
+    }
+  }
+
+  /**
+   * Creates or updates a link annotation on a page
+   */
+  private static createOrUpdateLinkAnnotation(
+    pdfDoc: PDFDocument,
+    page: any,
+    annotations: PDFArray,
+    oldTarget: number,
+    newTarget: number,
+    pages: any[]
+  ): void {
+    // First, try to find existing link annotations pointing to oldTarget
+    let foundExistingLink = false;
+
+    for (let i = 0; i < annotations.size(); i++) {
+      try {
+        const annotRef = annotations.get(i);
         const annot = pdfDoc.context.lookup(annotRef);
 
-        if (!annot || !(annot instanceof PDFDict)) continue;
+        if (!(annot instanceof PDFDict)) continue;
 
         const subtype = annot.get(PDFName.of('Subtype'));
-        if (!subtype || subtype?.toString() !== '/Link') continue;
+        if (!subtype || !(subtype instanceof PDFName) || subtype.asString() !== 'Link') continue;
 
-        const action = annot.get(PDFName.of('A'));
-        const actionDict = action && action instanceof PDFDict ? action : null;
-        if (!actionDict || actionDict.get(PDFName.of('S'))?.toString() !== '/GoTo') continue;
+        // Check if this link points to our oldTarget
+        const pointsToOldTarget = this.linkPointsToTarget(pdfDoc, annot, oldTarget, pages);
 
-        const dest = actionDict.get(PDFName.of('D'));
+        if (pointsToOldTarget) {
+          logger.info('[PDFService] Found existing link to update', {
+            oldTarget,
+            newTarget,
+          });
 
-        if (!dest || !(dest instanceof PDFRef)) continue;
+          foundExistingLink = true;
 
-        const match = linkUpdates.find(l => {
-          const targetPage = pdfDoc.getPage(l.oldTarget);
-          return dest === targetPage.ref;
+          // Update the link destination
+          this.updateLinkDestination(pdfDoc, annot, newTarget, pages);
+        }
+      } catch (error) {
+        logger.warn('[PDFService] Error checking annotation', {
+          index: i,
+          error: error instanceof Error ? error.message : String(error),
         });
+      }
+    }
 
-        if (match) {
-          const newPageRef = pdfDoc.getPage(match.newTarget).ref;
-          logger.info(`📎 Page ${pageIndex}: Updating link from page ${match.oldTarget} → ${match.newTarget}`);
-          actionDict.set(PDFName.of('D'), newPageRef);
+    // If no existing links were found, we can create a new one
+    // Note: In a real implementation, you would need coordinates of where to place this link
+    // Those would typically come from your linkToFix data
+    if (!foundExistingLink) {
+      logger.info('[PDFService] No existing link found to target', { oldTarget, newTarget });
+      // Creating new links would require rectangle coordinates which we don't have
+      // This would be where you'd add code to create a new link if needed
+    }
+  }
+
+  /**
+   * Checks if a link annotation points to the specified target page
+   */
+  private static linkPointsToTarget(
+    pdfDoc: PDFDocument,
+    annot: PDFDict,
+    targetPageIndex: number,
+    pages: any[]
+  ): boolean {
+    // Check direct Dest
+    const dest = annot.get(PDFName.of('Dest'));
+    if (dest) {
+      return this.destinationPointsToTarget(pdfDoc, dest, targetPageIndex, pages);
+    }
+
+    // Check Action with GoTo
+    const action = annot.get(PDFName.of('A'));
+    if (action instanceof PDFDict) {
+      const actionType = action.get(PDFName.of('S'));
+      if (actionType instanceof PDFName && actionType.asString() === 'GoTo') {
+        const actionDest = action.get(PDFName.of('D'));
+        if (actionDest) {
+          return this.destinationPointsToTarget(pdfDoc, actionDest, targetPageIndex, pages);
         }
       }
     }
 
-    const updatedPdf = await pdfDoc.save();
-    logger.info(`[fixInternalLinks] PDF link targets updated and saved.`);
-    return Buffer.from(updatedPdf);
+    return false;
+  }
+
+  /**
+   * Checks if a destination points to the specified target page
+   */
+  private static destinationPointsToTarget(
+    pdfDoc: PDFDocument,
+    dest: any,
+    targetPageIndex: number,
+    pages: any[]
+  ): boolean {
+    // Handle direct array destination
+    if (dest instanceof PDFArray && dest.size() > 0) {
+      const pageRef = dest.get(0);
+
+      if (pageRef instanceof PDFRef) {
+        // Find the page index by comparing references
+        const pageIndex = pages.findIndex((p) => {
+          return (
+            p.ref.objectNumber === pageRef.objectNumber &&
+            p.ref.generationNumber === pageRef.generationNumber
+          );
+        });
+
+        return pageIndex === targetPageIndex;
+      } else if (pageRef instanceof PDFNumber) {
+        return pageRef.asNumber() === targetPageIndex;
+      }
+    }
+    // Handle reference to a destination array
+    else if (dest instanceof PDFRef) {
+      try {
+        const destObj = pdfDoc.context.lookup(dest);
+        if (destObj instanceof PDFArray) {
+          return this.destinationPointsToTarget(pdfDoc, destObj, targetPageIndex, pages);
+        }
+      } catch (error) {
+        logger.warn('[PDFService] Failed to lookup destination reference');
+      }
+    }
+    // Handle named destinations
+    else if (dest instanceof PDFString || dest instanceof PDFName) {
+      // Named destinations would require resolving through Names dict
+      // This is complex and omitted for brevity
+      logger.debug('[PDFService] Named destination found - not checking');
+    }
+
+    return false;
+  }
+
+  /**
+   * Updates the destination of a link annotation to point to the new target page
+   */
+  private static updateLinkDestination(
+    pdfDoc: PDFDocument,
+    annot: PDFDict,
+    newTargetIndex: number,
+    pages: any[]
+  ): void {
+    if (newTargetIndex < 0 || newTargetIndex >= pages.length) {
+      logger.warn('[PDFService] New target page index out of range', { newTargetIndex });
+      return;
+    }
+
+    const newPageRef = pages[newTargetIndex].ref;
+
+    // Update direct Dest if it exists
+    const dest = annot.get(PDFName.of('Dest'));
+    if (dest) {
+      this.updateDestinationTarget(pdfDoc, dest, newPageRef);
+      return;
+    }
+
+    // Update Action with GoTo if it exists
+    const action = annot.get(PDFName.of('A'));
+    if (action instanceof PDFDict) {
+      const actionType = action.get(PDFName.of('S'));
+      if (actionType instanceof PDFName && actionType.asString() === 'GoTo') {
+        const actionDest = action.get(PDFName.of('D'));
+        if (actionDest) {
+          this.updateDestinationTarget(pdfDoc, actionDest, newPageRef);
+          return;
+        }
+      }
+    }
+
+    // If we get here, we need to create a new destination
+    logger.info('[PDFService] Creating new destination for link');
+
+    // Create default destination to top of page with "Fit" view
+    const newDest = pdfDoc.context.obj([newPageRef, PDFName.of('Fit')]);
+
+    // Set destination directly if there's no action
+    if (!action) {
+      annot.set(PDFName.of('Dest'), newDest);
+    } else {
+      // Or create/update GoTo action
+      const goToAction = pdfDoc.context.obj({
+        Type: PDFName.of('Action'),
+        S: PDFName.of('GoTo'),
+        D: newDest,
+      });
+
+      annot.set(PDFName.of('A'), goToAction);
+    }
+  }
+
+  /**
+   * Updates the target page in a destination
+   */
+  private static updateDestinationTarget(pdfDoc: PDFDocument, dest: any, newPageRef: PDFRef): void {
+    // Handle direct array destination
+    if (dest instanceof PDFArray && dest.size() > 0) {
+      // Replace first element with new page reference
+      dest.set(0, newPageRef);
+    }
+    // Handle reference to a destination array
+    else if (dest instanceof PDFRef) {
+      try {
+        const destObj = pdfDoc.context.lookup(dest);
+        if (destObj instanceof PDFArray && destObj.size() > 0) {
+          destObj.set(0, newPageRef);
+        }
+      } catch (error) {
+        logger.warn('[PDFService] Failed to lookup destination reference for update');
+      }
+    }
+    // Handle named destinations (would need to update the actual destination this name points to)
+    else if (dest instanceof PDFString || dest instanceof PDFName) {
+      logger.warn('[PDFService] Named destinations not supported for updating');
+    }
   }
 }
 

@@ -1,6 +1,7 @@
 const fileInput = document.getElementById('fileInput');
 const form = document.getElementById('uploadForm');
 const previewContainer = document.getElementById('previewContainer');
+const loader = document.getElementById('loader');
 
 let pagesToRemove = [];
 
@@ -65,6 +66,8 @@ form.addEventListener('submit', async (e) => {
     return;
   }
 
+  loader.style.display = 'flex';
+
   const formData = new FormData();
   formData.append('file', file);
   formData.append('filename', filename);
@@ -82,13 +85,10 @@ form.addEventListener('submit', async (e) => {
     downloadLink.href = URL.createObjectURL(blob);
     downloadLink.download = filename;
     downloadLink.click();
-
-    // ✅ Reset UI after download
-    form.reset();
-    previewContainer.innerHTML = '';
-    pagesToRemove = [];
   } catch (error) {
     console.error('Error submitting form:', error);
     alert('Something went wrong.');
+  } finally {
+    loader.style.display = 'none';
   }
 });

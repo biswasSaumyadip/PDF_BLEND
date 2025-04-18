@@ -81,6 +81,7 @@ fileInput.addEventListener('change', async () => {
 
 form.addEventListener('submit', async (e) => {
   e.preventDefault();
+  const loader = document.getElementById('loader');
   loader.style.display = 'flex';
 
   const file = fileInput.files[0];

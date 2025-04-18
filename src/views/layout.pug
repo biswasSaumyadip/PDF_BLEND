@@ -7,8 +7,10 @@ html
     link(rel='stylesheet', href='https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css')
     link(rel='stylesheet', href='/stylesheets/style.css')
     link(rel='stylesheet', href='/stylesheets/sidebar.css')
+    link(rel='stylesheet', href='/stylesheets/loader.css')
     block styles
   body
+    include components/loader
     .workspace
       aside.sidebar
         .sidebar-header
@@ -28,7 +30,7 @@ html
                 i.fas.fa-object-group
                 span Merge PDFs
             
-            li.nav-item(class=activePage === 'merge-preview' ? 'active' : '')
+            li.nav-item(class=activePage === 'merge-with-preview' ? 'active' : '')
               a.nav-link(href='/merge-with-preview')
                 i.fas.fa-cut
                 span Merge with Preview
@@ -44,4 +46,5 @@ html
       main.content
         block pageContent
 
+    +loader()
     block scripts

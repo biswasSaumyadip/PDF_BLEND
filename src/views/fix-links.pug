@@ -10,8 +10,6 @@ block sidebarForm
 
     button(type='submit') Fix Links
 
-    #loader(style='display:none;') Fixing links...
-
 block pageContent
   h2 Preview and Fix Internal Page Links
   #previewContainer
@@ -58,22 +56,6 @@ block styles
       border: 1px solid #888;
     }
 
-    /* Full-screen loader */
-    #loader {
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100vw;
-      height: 100vh;
-      background: rgba(255, 255, 255, 0.8);
-      z-index: 9999;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      font-weight: bold;
-      font-size: 18px;
-    }
-
     .page-label {
       position: absolute;
       top: -24px;
@@ -90,3 +72,6 @@ block styles
 block scripts
   script(src='https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js')
   script(type='module' src='/javascripts/fix-links-preview.mjs')
+
+block loader
+  include ../components/loader

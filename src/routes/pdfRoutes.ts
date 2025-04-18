@@ -4,14 +4,13 @@ import upload from '../middleware/uploadMiddleware';
 import logger from '../utils/logger';
 import { PDFDocument } from 'pdf-lib';
 import { validateMergeUpload } from '../middleware/uploadValidatorMiddleware';
-import { mergeWithPreview } from '../controller/pdfController';
+import { fixLinksHandler, mergeWithPreview } from '../controller/pdfController';
 
 const router = express.Router();
 
 interface CustomRequest extends Request {
   file: Express.Multer.File;
 }
-
 
 router.post(
   '/merge',
@@ -46,9 +45,7 @@ router.post(
 
       if (!req.file) {
         logger.warn('[Validation Error] No file uploaded');
-        return res
-          .status(400)
-          .json({ error: 'No file uploaded. Please select a PDF.' });
+        return res.status(400).json({ error: 'No file uploaded. Please select a PDF.' });
       }
 
       next();
@@ -78,24 +75,25 @@ router.post(
 
 router.post('/merge-with-preview', validateMergeUpload, mergeWithPreview);
 
-router.post('/fix-links', upload.single('file'), async (req, res) => {
-  try {
-    const file = req.file;
-    const filename = req.body.filename || 'Updated.pdf';
-    const linksToFix: Record<number, { oldTarget: number; newTarget: number }[]> = JSON.parse(req.body.linksToFix || '{}');
+// router.post('/fix-links', upload.single('file'), async (req, res) => {
+//   try {
+//     const file = req.file;
+//     const filename = req.body.filename || 'Updated.pdf';
+//     const linksToFix: Record<number, { oldTarget: number; newTarget: number }[]> = JSON.parse(req.body.linksToFix || '{}');
 
-    if (!file?.buffer) return res.status(400).send('No file uploaded');
+//     if (!file?.buffer) return res.status(400).send('No file uploaded');
 
-    const updated = await PDFService.fixInternalLinks(file.buffer, linksToFix);
+//     const updated = await PDFService.fixInternalLinks(file.buffer, linksToFix);
 
-    res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
-    res.setHeader('Content-Type', 'application/pdf');
-    res.send(updated);
-  } catch (err: any) {
-    logger.error('[Fix Links Error]', err.message);
-    res.status(500).send('Failed to fix links');
-  }
-});
+//     res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
+//     res.setHeader('Content-Type', 'application/pdf');
+//     res.send(updated);
+//   } catch (err: any) {
+//     logger.error('[Fix Links Error]', err.message);
+//     res.status(500).send('Failed to fix links');
+//   }
+// });
 
+router.post('/fix-links', upload.single('file'), fixLinksHandler);
 
 export default router;
