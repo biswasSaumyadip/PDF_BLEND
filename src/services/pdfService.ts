@@ -1,19 +1,17 @@
+import AdmZip from 'adm-zip';
 import {
-  PDFDocument,
-  PDFName,
   PDFArray,
   PDFDict,
-  PDFRef,
+  PDFDocument,
+  PDFName,
   PDFNumber,
-  PDFString,
-  PDFPage,
   PDFObject,
+  PDFPage,
+  PDFRef,
+  PDFString,
 } from 'pdf-lib';
-import { Request, Response } from 'express';
-import AdmZip from 'adm-zip';
-import logger from '../utils/logger';
 import { LinkPageMap } from '../types/types';
-import { sendPDFResponse } from '../utils/pdfResponse';
+import logger from '../utils/logger';
 
 export class PDFService {
   static async mergePDFs(pdfs: Buffer[]): Promise<Buffer> {
