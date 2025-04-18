@@ -1,23 +1,49 @@
 extends layout
 
+include components/file-uploader
+include components/button
+
 block sidebarForm
-  form#fixLinksForm(action='/pdf/fix-links' method='POST' enctype='multipart/form-data')
-    label(for='fileInput') Upload PDF:
-    input(type='file' id='fileInput' name='file' accept='application/pdf')
+  .sidebar-content
+    h3.sidebar-title Fix PDF Internal Links
+    form.sidebar-form#fixLinksForm(action='/pdf/fix-links' method='POST' enctype='multipart/form-data')
+      .form-group
+        label.form-label Upload PDF:
+        +file-uploader({
+          id: 'fileInput',
+          accept: 'application/pdf',
+          multiple: false,
+          description: 'Drop PDF file here'
+        })
 
-    label(for='filename') Output File Name:
-    input(type='text' id='filename' name='filename' placeholder='UpdatedFile.pdf')
+      .form-group
+        label.form-label(for='filename') Output File Name:
+        input.form-input#filename(
+          type='text'
+          name='filename'
+          placeholder='UpdatedFile.pdf'
+        )
 
-    button(type='submit') Fix Links
+      +button('submit', 'primary', 'fas fa-link', 'Fix Links', 'btn-block')
 
 block pageContent
-  h2 Preview and Fix Internal Page Links
-  #previewContainer
+  .preview
+    .preview-header
+      .header-content
+        i.fas.fa-file-pdf
+        h2 PDF Links Preview
+        p.header-desc Update page numbers for internal links
+
+    .preview-section
+      .preview-container#previewContainer
+        .preview-placeholder
+          i.far.fa-file-pdf
+          p.preview-text Drop a PDF to preview and fix links
 
 block styles
   style.
     /* Preview container holds rendered PDF pages */
-    #previewContainer {
+    .preview-container {
       display: flex;
       flex-direction: column;
       gap: 40px;
@@ -72,6 +98,3 @@ block styles
 block scripts
   script(src='https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js')
   script(type='module' src='/javascripts/fix-links-preview.mjs')
-
-block loader
-  include ../components/loader

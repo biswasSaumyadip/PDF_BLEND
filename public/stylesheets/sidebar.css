@@ -126,7 +126,7 @@ main.content {
 }
 
 .sidebar-content {
-  padding: 1rem;
+  padding: 1.25rem;
   flex: 1;
 }
 
@@ -136,4 +136,92 @@ main.content {
   font-size: 1.1rem;
   margin-bottom: 1rem;
   color: var(--text);
+}
+
+/* Sidebar Form Styles */
+.sidebar-title {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: var(--text);
+  margin-bottom: 1.25rem;
+}
+
+.sidebar-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.sidebar-form .form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.sidebar-form .form-label {
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: var(--light-text);
+}
+
+.sidebar-form .form-input {
+  width: 100%;
+  padding: 0.75rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  font-size: 0.875rem;
+  background: var(--hover);
+  color: var(--text);
+  transition: all 0.2s ease;
+}
+
+.sidebar-form .form-input:focus {
+  outline: none;
+  border-color: var(--primary);
+  background: white;
+}
+
+.sidebar-form .btn-block {
+  margin-top: 0.5rem;
+}
+
+/* File upload area within sidebar */
+.sidebar-form .file-uploader {
+  margin-bottom: 0;
+}
+
+.sidebar-form .upload-area {
+  padding: 1.25rem;
+  background: var(--hover);
+  border: 2px dashed var(--border);
+}
+
+.sidebar-form .upload-area.drag-over {
+  border-color: var(--primary);
+  background: var(--active);
+}
+
+.sidebar-form .drop-zone-content i {
+  font-size: 1.75rem;
+  margin-bottom: 0.75rem;
+}
+
+.sidebar-form .drop-text {
+  font-size: 0.875rem;
+  color: var(--text);
+  margin: 0.25rem 0;
+}
+
+.sidebar-form .browse-btn {
+  margin-top: 0.75rem;
+  font-size: 0.875rem;
+  padding: 0.5rem 1rem;
+}
+
+.sidebar-form .file-list {
+  margin-top: 0.75rem;
+}
+
+.sidebar-form .file-status {
+  font-size: 0.8rem;
 }
