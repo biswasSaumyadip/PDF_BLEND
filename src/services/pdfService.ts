@@ -453,9 +453,13 @@ export const mergePDFsHandler = async (req: Request, res: Response) => {
       logger.info(`[mergePDFsHandler] ${pdfFiles.length} PDFs uploaded`);
 
       pdfFiles.sort((a, b) => {
-        const numA = parseInt(a.originalname.match(/^(\d+)/)?.[0] || '0', 10);
-        const numB = parseInt(b.originalname.match(/^(\d+)/)?.[0] || '0', 10);
-        return numA - numB;
+        const aMatch = a.originalname.match(/^(\d+)/);
+        const bMatch = b.originalname.match(/^(\d+)/);
+
+        if (aMatch && bMatch) {
+          return parseInt(aMatch[1], 10) - parseInt(bMatch[1], 10);
+        }
+        return a.originalname.localeCompare(b.originalname);
       });
 
       logger.info(`[mergePDFsHandler] Sorted PDFs by filename`);

@@ -21,9 +21,13 @@ export const mergeWithPreview = async (req: Request, res: Response) => {
 
     // Sort files by original filename if they start with numbers
     files.sort((a, b) => {
-      const numA = parseInt(a.originalname.match(/^(\d+)/)?.[0] || '0', 10);
-      const numB = parseInt(b.originalname.match(/^(\d+)/)?.[0] || '0', 10);
-      return numA - numB;
+      const aMatch = a.originalname.match(/^(\d+)/);
+      const bMatch = b.originalname.match(/^(\d+)/);
+
+      if (aMatch && bMatch) {
+        return parseInt(aMatch[1], 10) - parseInt(bMatch[1], 10);
+      }
+      return a.originalname.localeCompare(b.originalname);
     });
 
     const mergedBuffer = await mergePdfWithRemovals(files, pagesToRemoveMap);
