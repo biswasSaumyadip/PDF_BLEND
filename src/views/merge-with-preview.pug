@@ -1,78 +1,355 @@
 extends layout
 
 block sidebarForm
-  form#uploadForm(action='/pdf/merge-with-preview' method='POST' enctype='multipart/form-data')
-    label(for='fileInput') Upload PDF(s) or ZIP:
-    input(type='file' id='fileInput' name='files' accept='.pdf,.zip' multiple)
+  .sidebar-content
+    h3.sidebar-title Merge PDFs
 
-    label(for='filename') Output File Name:
-    input(type='text' id='filename' name='filename' placeholder='MergedFile.pdf')
+    .upload-section
+      label.upload-label Upload PDF(s) or ZIP:
+      .upload-area
+        .drop-zone
+          i.fa.fa-cloud-upload
+          p.drop-text Drag and drop files here
+          p.drop-text-or or
+          button.browse-btn#browseFiles Browse Files
+        input(type='file' id='fileInput' name='files' accept='.pdf,.zip' multiple hidden)
+      .file-status 0 files selected
 
-    button(type='submit') Merge With Preview
+    .output-section
+      label.output-label Output File Name:
+      input.output-input(type='text' id='filename' name='filename' value='MergedFile.pdf')
 
-  #loader(style='display:none;') Loading... Please wait...
+    button.merge-btn#mergeBtn
+      i.fa.fa-object-group
+      span Merge PDFs
 
 block pageContent
-  h2 Select Pages to Remove
-  #previewContainer
+  .info-banner
+    i.fa.fa-info-circle
+    span Ready to merge your PDFs
+    p.info-text Your merged document will be downloaded automatically after processing is complete.
+
+  .preview-container
+    .preview-placeholder
+      .pdf-icon
+        i.fa.fa-file-pdf-o
+      p.preview-text Ready to preview your merged PDF
 
 block styles
   style.
-    html, body {
-      margin: 0;
-      padding: 0;
-      height: 100vh;
-      font-family: sans-serif;
-      background: #f0f0f0;
-    }
+    :root {
+      --primary: #4361ee;
+      --sidebar-bg: #ffffff;
+      --content-bg: #f0f5fa;
+      --text: #333;
+      --light-text: #666;
+      --border: #e0e0e0;
+      --hover: #f5f5f5;
+      --active: #e6f0ff;
+      --shadow: 0 2px 10px rgba(0,0,0,0.05);
+      --radius: 8px;
+        }
 
-    .workspace {
-      display: flex;
-      height: 100vh;
-      width: 100vw;
-    }
+        * {
+          box-sizing: border-box;
+          margin: 0;
+          padding: 0;
+        }
 
-    main.preview-panel {
-      flex: 1;
-      padding: 30px;
-      overflow-y: auto;
-    }
+        body {
+          font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+          background-color: var(--content-bg);
+          color: var(--text);
+          line-height: 1.5;
+        }
 
-    #previewContainer {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
-      gap: 20px;
-    }
+        .workspace {
+          display: flex;
+          min-height: 100vh;
+        }
 
-    .pdf-page {
-      background: white;
-      padding: 10px;
-      border: 1px solid #ccc;
-      border-radius: 6px;
-      text-align: center;
-    }
+        .sidebar {
+          width: 250px;
+          background: var(--sidebar-bg);
+          border-right: 1px solid var(--border);
+          padding: 1.5rem 1rem;
+          display: flex;
+          flex-direction: column;
+        }
 
-    .pdf-page.selected {
-      border: 2px solid red;
-      opacity: 0.6;
-    }
+        .sidebar-title {
+          font-size: 1.2rem;
+          font-weight: 600;
+          margin-bottom: 2rem;
+          color: var(--text);
+        }
 
-    #loader {
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100vw;
-      height: 100vh;
-      background: rgba(255, 255, 255, 0.8);
-      z-index: 999;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      font-weight: bold;
-    }
+        .sidebar-content {
+          display: flex;
+          flex-direction: column;
+          gap: 1.5rem;
+        }
+
+        .upload-section,
+        .output-section {
+          background: var(--hover);
+          border: 1px solid var(--border);
+          border-radius: var(--radius);
+          padding: 1rem;
+        }
+
+        .upload-label,
+        .output-label {
+          font-size: 0.95rem;
+          font-weight: 500;
+          margin-bottom: 0.75rem;
+          color: var(--light-text);
+        }
+
+        .drop-zone {
+          border: 2px dashed var(--border);
+          border-radius: var(--radius);
+          background: var(--hover);
+          padding: 2rem;
+          text-align: center;
+          transition: all 0.3s ease;
+          cursor: pointer;
+        }
+
+        .drop-zone:hover {
+          border-color: var(--primary);
+          background: var(--active);
+        }
+
+        .drop-text {
+          font-size: 0.9rem;
+          color: var(--light-text);
+          margin: 0.25rem 0;
+        }
+
+        .drop-text-or {
+          font-size: 0.8rem;
+          color: #999;
+          margin: 0.5rem 0;
+        }
+
+        .browse-btn {
+          padding: 0.5rem 1rem;
+          font-size: 0.9rem;
+          font-weight: 500;
+          color: var(--primary);
+          border: 1px solid var(--primary);
+          background: #fff;
+          border-radius: var(--radius);
+          cursor: pointer;
+        }
+
+        .file-status {
+          margin-top: 0.5rem;
+          font-size: 0.8rem;
+          color: var(--light-text);
+        }
+
+        .output-input {
+          width: 100%;
+          padding: 0.75rem;
+          border: 1px solid var(--border);
+          border-radius: var(--radius);
+          font-size: 0.95rem;
+        }
+
+        .output-input:focus {
+          border-color: var(--primary);
+          outline: none;
+        }
+
+        .merge-btn {
+          margin-top: 1rem;
+          width: 100%;
+          padding: 0.75rem;
+          background: var(--primary);
+          color: #fff;
+          font-size: 1rem;
+          font-weight: 600;
+          border-radius: var(--radius);
+          border: none;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          gap: 0.5rem;
+          transition: background 0.3s ease;
+          cursor: pointer;
+        }
+
+        .merge-btn:hover {
+          background: #3a49be;
+        }
+
+        main {
+          flex: 1;
+          padding: 2rem;
+        }
+
+        .info-banner {
+          background: #fff;
+          padding: 2rem;
+          border-radius: var(--radius);
+          box-shadow: var(--shadow);
+          margin-bottom: 2rem;
+          text-align: center;
+        }
+
+        .info-banner i {
+          font-size: 2rem;
+          color: var(--primary);
+          margin-bottom: 1rem;
+        }
+
+        .info-banner span {
+          font-size: 1.5rem;
+          font-weight: 600;
+          display: block;
+          margin-bottom: 0.5rem;
+        }
+
+        .info-text {
+          color: var(--light-text);
+          font-size: 1rem;
+        }
+
+        .preview-container {
+          background: #fff;
+          border-radius: var(--radius);
+          box-shadow: var(--shadow);
+          padding: 2rem;
+          min-height: 300px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+        }
+
+        .preview-placeholder {
+          text-align: center;
+          color: #aaa;
+        }
+
+        .preview-placeholder .pdf-icon {
+          font-size: 4rem;
+          margin-bottom: 1rem;
+          color: #ccc;
+        }
+
+        .preview-placeholder .preview-text {
+          font-size: 1rem;
+        }
 
 block scripts
+  script(src='https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/js/all.min.js')
   script(src='https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js')
   script(src='https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js')
   script(src='https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js')
-  script(type='module' src='/javascripts/preview.mjs')
+  script.
+    document.addEventListener('DOMContentLoaded', function() {
+      const dropZone = document.querySelector('.drop-zone');
+      const fileInput = document.getElementById('fileInput');
+      const browseBtn = document.getElementById('browseFiles');
+      const fileStatus = document.querySelector('.file-status');
+      const mergeBtn = document.getElementById('mergeBtn');
+      const previewContainer = document.querySelector('.preview-container');
+
+      // Handle file browsing
+      browseBtn.addEventListener('click', function(e) {
+        e.preventDefault();
+        fileInput.click();
+      });
+
+      // Handle file selection
+      fileInput.addEventListener('change', function() {
+        updateFileStatus();
+      });
+
+      // Handle drag and drop
+      dropZone.addEventListener('dragover', function(e) {
+        e.preventDefault();
+        dropZone.classList.add('active');
+      });
+
+      dropZone.addEventListener('dragleave', function() {
+        dropZone.classList.remove('active');
+      });
+
+      dropZone.addEventListener('drop', function(e) {
+        e.preventDefault();
+        dropZone.classList.remove('active');
+        fileInput.files = e.dataTransfer.files;
+        updateFileStatus();
+      });
+
+      // Update file status
+      function updateFileStatus() {
+        const count = fileInput.files.length;
+        fileStatus.textContent = `${count} file${count !== 1 ? 's' : ''} selected`;
+
+        if (count > 0) {
+          loadPreviews();
+        }
+      }
+
+      // Load file previews
+      function loadPreviews() {
+        previewContainer.innerHTML = '';
+        previewContainer.classList.add('preview-grid');
+
+        // This is where you would normally load PDF previews
+        // Since this is just the UI template, I'm showing placeholder content
+        const loaderHTML = `
+          <div id="loader">
+            <div class="loader-content">
+              <div class="loader-spinner"></div>
+              <p>Processing files...</p>
+            </div>
+          </div>
+        `;
+        document.body.insertAdjacentHTML('beforeend', loaderHTML);
+
+        // Simulate preview generation
+        setTimeout(() => {
+          const loader = document.getElementById('loader');
+          if (loader) loader.remove();
+
+          // Replace this with actual PDF preview generation
+          for (let i = 0; i < fileInput.files.length; i++) {
+            const pageHTML = `
+              <div class="pdf-page">
+                <div class="page-content" style="background-color: #f9f9f9; height: 200px; display: flex; align-items: center; justify-content: center;">
+                  <i class="far fa-file-pdf" style="font-size: 40px; color: #d33;"></i>
+                </div>
+                <div class="page-number">Page ${i+1}</div>
+              </div>
+            `;
+            previewContainer.insertAdjacentHTML('beforeend', pageHTML);
+          }
+
+          // Add click handler for page selection
+          document.querySelectorAll('.pdf-page').forEach(page => {
+            page.addEventListener('click', function() {
+              this.classList.toggle('selected');
+            });
+          });
+        }, 1500);
+      }
+
+      // Handle merge button
+      mergeBtn.addEventListener('click', function() {
+        if (fileInput.files.length === 0) {
+          alert('Please select files to merge');
+          return;
+        }
+
+        const selectedPages = Array.from(document.querySelectorAll('.pdf-page.selected'))
+          .map(page => page.querySelector('.page-number').textContent.replace('Page ', ''));
+
+        // Here you would submit the form with selected pages
+        alert(`Merging files, excluding pages: ${selectedPages.join(', ')}`);
+      });
+    });
